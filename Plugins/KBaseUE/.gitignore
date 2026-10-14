@@ -1,0 +1,34 @@
+# ============================================================
+#  KBaseUE .gitignore
+#
+#  两条原则（与 ComboMCP 一致）：
+#   1. 凡是"每个用户跑一次就不一样"的东西都不进仓库。
+#   2. 引擎源码索引有 100 MB 量级，而且随时可以用
+#      `check.cmd --index-build` 重建——它不该进版本库。
+#
+#  刻意用通配符 + 白名单，避免 .gitignore 自身的编码问题。
+# ============================================================
+
+# ---- 生成物：引擎索引 / 启动自检记录 ----
+cache/
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+
+# ---- UE 可能在插件目录生成的本地文件 ----
+Binaries/
+Intermediate/
+Saved/
+
+# ---- 编辑器 / 操作系统 ----
+.vscode/
+.idea/
+*.swp
+*~
+Thumbs.db
+Desktop.ini
+.DS_Store

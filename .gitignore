@@ -1,0 +1,27 @@
+# Unreal 生成物（如果有人在本地打开这个仓库）
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+Build/*.txt
+
+# IDE / 编辑器
+.vs/
+.vscode/
+.idea/
+*.sln
+*.suo
+*.opensdf
+*.sdf
+*.VC.db
+*.swp
+*~
+
+# Python
+__pycache__/
+*.py[cod]
+
+# 操作系统
+Thumbs.db
+Desktop.ini
+.DS_Store

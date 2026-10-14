@@ -1,0 +1,24 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0.0",
+	"FriendlyName": "KBase UE5.7 Engine Facts",
+	"Description": "KBaseUE: UE 5.7.4 引擎语义的知识底座 + 可执行校验。把蓝图接口/事件/AnimNotify 这类「语义型」结论预先蒸馏成带 file:line 的规则（Content/Knowledge/*.json），并提供 iface_check 把结论落到具体资产上验证（读 T3D 缓存，只读、不需要编辑器）。存在的理由：这类问题靠印象回答会连续答错，而引擎源码里同一个判定散布在多个文件，只读一处就会得出自相矛盾的结论。",
+	"Category": "Scripting",
+	"CreatedBy": "",
+	"CreatedByURL": "",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"EnabledByDefault": true,
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"Installed": false,
+	"Modules": [],
+	"Plugins": [
+		{
+			"Name": "PythonScriptPlugin",
+			"Enabled": true
+		}
+	]
+}

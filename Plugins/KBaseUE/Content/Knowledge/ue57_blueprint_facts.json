@@ -1,0 +1,175 @@
+{
+  "schema": 1,
+  "title": "Unreal Engine 5.7.4 蓝图接口 / 事件 / 动画通知 —— 引擎源码蒸馏",
+  "engine": {
+    "version": "5.7.4-51494982+++UE5+Release-5.7",
+    "build_version_file": "E:/UE_5.7/Engine/Build/Build.version",
+    "source_root": "E:/UE_5.7/Engine/Source"
+  },
+  "meta": {
+    "why": "这份文档存在的原因：曾经连续三次凭搜索结果和半个函数的源码下了绝对结论，把用户的时间浪费在错误的修复路径上。这里只记录**源码级可复核**的事实，每条都带 file:line。",
+    "rules_of_engagement": [
+      "凡是能引用引擎源码行号的结论，不得凭记忆或搜索结果断言。",
+      "读一个函数之前不要下结论；读到一个函数之后，要确认调用它的地方也读了。",
+      "拿不准就说拿不准，不要编造听起来合理的因果链。"
+    ]
+  },
+  "rules": [
+    {
+      "id": "meta.verify-before-assert",
+      "title": "【元规则】关于 UE 语义下断言之前，必须先取到 file:line",
+      "keywords": [
+        "怎么查", "先查再答", "验证", "索引", "engine_source", "查源码",
+        "不确定", "不要猜", "file:line", "证据", "怎么用这个插件"
+      ],
+      "verdict": "任何关于蓝图/事件/接口/动画通知语义的断言，先经 engine_source 拿到 file:line，或经 interface_check 在具体资产上验证过，再说出口。取不到证据时**明说取不到**，不要给一个听起来合理的因果解释。",
+      "details": [
+        "这个知识库只有 5 条规则，覆盖不了所有问题——结论无法穷举，但**事实可以检索**。所以主力是引擎源码索引（engine_source），规则只是高频坑的快捷方式。",
+        "engine_source 的七个 action：symbol（定位声明+行号+归属）、read（读原文，下结论前应做）、usage（看引擎里实际怎么用——说明符含义的正解不是查字典）、reflected（UPROPERTY/UFUNCTION 说明符真相）、grep（全源码盘扫，含 cpp）、files、status。",
+        "为什么必须盘扫而不能只查索引：lines 表只覆盖头文件关键字，而关键证据常在 .cpp 里（例如 BlueprintEditor.cpp:6604 那段注释）。曾经拿只覆盖头文件的索引回答 cpp 里的问题，结论必然是错的。",
+        "查不到时的正确措辞是「索引里没有，我不能据此断言」，而不是「引擎不支持」。这两句差别很大。"
+      ],
+      "how_to_fix": [
+        "1) 命令行：check.cmd --index symbol <名字> → check.cmd --index def <名字> 读原文。",
+        "2) 或 check.cmd --index grep \"<精确字符串>\" 定位 cpp 里的实现与注释。",
+        "3) 涉及具体资产时再用 check.cmd <资产路径> 验证。",
+        "4) 确认工具本身可信：check.cmd --selftest（13 项，断言的是能查到已知答案）。"
+      ],
+      "false_leads": [
+        "错：「我记得引擎是这样的」——本项目已经因此连错三次，其中一次只读了半个文件就宣布『编辑器没有这条路径』。",
+        "错：拿一个覆盖不全的索引的『0 结果』当『不存在』的证据。",
+        "错：把『工具没报错』当成『结论正确』。这套工具的第一版检查器有四个 bug，全都是安静地返回空值然后照常给结论。"
+      ],
+      "sources": [
+        "Plugins/KBaseUE/Content/Python/engine_index.py — 索引器（symbols/reflected/lines/files 四表）",
+        "Plugins/KBaseUE/Content/Python/engine_query.py — 查询门面（symbol/read/usage/reflected/grep/files）",
+        "Plugins/KBaseUE/Content/Python/selftest.py — 工具链自检，断言能查到已知答案",
+        "Plugins/KBaseUE/README.md — 六个「工具安静地错」的案例清单"
+      ]
+    },
+    {
+      "id": "iface.event-vs-function",
+      "title": "接口函数会做成事件还是函数存根，只由「有没有输出参数」决定",
+      "keywords": [
+        "接口", "蓝图接口", "接口事件", "接口函数", "事件", "函数", "菱形", "interface",
+        "BlueprintInterface", "FunctionCanBePlacedAsEvent", "输出参数", "返回值",
+        "为什么会变成函数", "为什么不是事件", "Convert Function to Event", "转换"
+      ],
+      "verdict": "把蓝图接口里的某个函数实现到蓝图时，UE 自动生成的入口类型 = FunctionCanBePlacedAsEvent(接口函数) ? 事件节点 : 函数图存根。而 FunctionCanBePlacedAsEvent 返回 !HasFunctionAnyOutputParameter()。所以：接口函数只要有任何一个输出参数，就**不可能**以事件形式实现，只能拿到一个函数图存根（My Blueprint 里图标是 f，不是菱形）。这不是 bug，也不是缓存问题——参数一改成输入，立刻就是事件。",
+      "details": [
+        "FunctionCanBePlacedAsEvent 的完整判定（按顺序短路）：接口函数不能是 null；必须带 FUNC_BlueprintEvent（CanKismetOverrideFunction）；不能带 FUNC_Static；不能带 FUNC_Const；不能有 BlueprintThreadSafe 元数据；不能有 ForceAsFunction 元数据；最后必须没有输出参数。",
+        "HasFunctionAnyOutputParameter 把两类参数都算成「输出」：带 CPF_ReturnParm 的返回值；带 CPF_OutParm 且**不带** CPF_ReferenceParm 也**不带** CPF_ConstParm 的纯输出参数。反过来说，输入参数是 CPF_OutParm|CPF_ReferenceParm|CPF_ConstParm 这种引用+const 组合，所以不会误判成输出。",
+        "关键坑：T3D / Python 里看到的引脚 Direction 是**图上的线方向**，不是参数方向，直接读会读反。见规则 iface.param-direction-reading。"
+      ],
+      "ui_symptom": [
+        "My Blueprint > Interfaces > <接口> 下该函数图标是 f（OverrideFunction_16x），不是菱形。",
+        "My Blueprint > Functions 下多出一个同名条目，点进去是空的 FunctionEntry/FunctionResult 存根图。",
+        "该图右键 Delete 是灰的（UEdGraph::bAllowDeletion 被置为 false）。",
+        "试图把函数图转成事件时，Message Log 报：'A function can only be converted if it does not have any output parameters.'，标题 'Function cannot have output parameters'。"
+      ],
+      "how_to_fix": [
+        "1) 打开接口蓝图（如 BPI_CombatComponent），双击那个函数。",
+        "2) 选中 My Blueprint 里的函数名，看右侧 Details 面板：参数在 Inputs 栏还是 Outputs 栏。",
+        "3) 在 Outputs 栏删掉它，在 Inputs 栏重新加一个同名同类型的参数。",
+        "4) 编译接口并保存。回到实现方蓝图编译一次。",
+        "5) 在实现方蓝图里，My Blueprint > Functions > 右键该函数 > 'Convert Function to Event'（GraphEditorActions.cpp:60 的菜单标签）。",
+        "6) 验证：My Blueprint > Interfaces > 该接口 下面的条目图标变成菱形，且函数图消失、节点出现在 EventGraph 里。"
+      ],
+      "automatic_repair": "改接口参数方向后，编辑器**也可能自动**修好，不必手动转：FBlueprintEditorUtils::ConformImplementedInterfaces 会遍历已实现接口里的事件节点，若某个事件对应的接口函数现在 FunctionCanBePlacedAsEvent 变成 false，就把该事件替换成同名 CustomEvent 并弹警告「was promoted from an event to a function - it has been replaced by a custom event」；反过来（函数变事件）时会为它建事件存根。所以改完参数方向后，若原来的函数存根还在，用第 5 步显式转换最省事。",
+      "sources": [
+        "Engine/Source/Editor/BlueprintGraph/Private/EdGraphSchema_K2.cpp:925-941 — FunctionCanBePlacedAsEvent",
+        "Engine/Source/Editor/BlueprintGraph/Private/EdGraphSchema_K2.cpp:910-923 — HasFunctionAnyOutputParameter",
+        "Engine/Source/Editor/BlueprintGraph/Private/EdGraphSchema_K2.cpp:898-908 — CanKismetOverrideFunction",
+        "Engine/Source/Editor/Kismet/Private/BlueprintEditor.cpp:6513-6518 — 转换被输出参数拦下时的报错原文",
+        "Engine/Source/Editor/Kismet/Private/BlueprintEditor.cpp:6604-6618 — 注释「Allow an interface function to be converted ... (UE-85687)」，证明接口函数可以被转成事件",
+        "Engine/Source/Editor/GraphEditor/Private/GraphEditorActions.cpp:60 — 菜单项 'Convert Function to Event'",
+        "Engine/Source/Editor/KismetCompiler/Private/KismetCompiler.cpp:4057-4095 — 按 FunctionCanBePlacedAsEvent 决定生成事件存根还是函数图",
+        "Engine/Source/Editor/UnrealEd/Private/Kismet2/BlueprintEditorUtils.cpp:6465-6501 与 7310-7363 — 只有 CanKismetOverrideFunction && !FunctionCanBePlacedAsEvent 才建函数图存根",
+        "Engine/Source/Editor/UnrealEd/Private/Kismet2/BlueprintEditorUtils.cpp:7245-7289 — 事件/函数身份互换时的自动改写与警告"
+      ],
+      "false_leads": [
+        "错：「接口函数本来就只能是函数，编辑器没有转成事件的路径。」—— 错在只读了 BlueprintActionDatabase.cpp:679-680 的 !bIsBpInterfaceFunc（那只是右键菜单的事件节点注册），漏了 BlueprintEditor.cpp:6606 明确允许接口函数转事件。",
+        "错：「函数图占了同名位置，所以变成函数。」—— 这是结果不是原因。BlueprintEditorUtils.cpp:7316 的判定先看 FunctionCanBePlacedAsEvent，图是**因为**判定失败才被建出来的。",
+        "错：「需要删掉整个蓝图接口再重新添加。」—— 破坏性且没必要。删接口会走 RemoveInterface，若在弹窗里选 No，会把该接口的事件节点连同连线一起删掉（BlueprintEditorUtils.cpp:6633-6665；弹窗文案见 BlueprintDetailsCustomization.cpp:6893-6918）。改参数方向即可。"
+      ]
+    },
+    {
+      "id": "iface.param-direction-reading",
+      "title": "怎么从资产里准确看出接口参数是输入还是输出",
+      "keywords": [
+        "参数方向", "输入参数", "输出参数", "引脚方向", "T3D", "怎么读", "读反",
+        "EGPD_Input", "EGPD_Output", "UserDefinedPin", "DesiredPinDirection", "FunctionResult"
+      ],
+      "verdict": "认节点，不要认 Direction。输入参数 → 出现在 FunctionEntry 节点上；输出参数（含返回值）→ 出现在 FunctionResult 节点上。引脚自身的 Direction 恰好相反：FunctionEntry 的引脚一律是 EGPD_Output，FunctionResult 的引脚一律是 EGPD_Input。",
+      "details": [
+        "UK2Node_FunctionEntry::CanCreateUserDefinedPin 明确拒绝在入口节点上建输入引脚，报 'Cannot add input pins to function entry node!'——所以入口节点上的用户引脚**只可能**是函数输入参数。",
+        "编译器侧同构：UK2Node_FunctionEntry 的 RegisterNets 对每个引脚 check(Net->Direction == EGPD_Output)，并在函数带 FUNC_HasOutParms 时把非输入参数单独收进 Context.Results（即输出参数由 FunctionResult 承载）。",
+        "所以判据是：某参数名出现在入口节点的引脚上 = 输入参数；出现在结果节点上 = 输出参数。Direction 字段本身在这个判断里没有信息量，只看它会读反。"
+      ],
+      "sources": [
+        "Engine/Source/Editor/BlueprintGraph/Private/K2Node_FunctionEntry.cpp:447-459 — CanCreateUserDefinedPin 拒绝入口节点输入引脚",
+        "Engine/Source/Editor/BlueprintGraph/Private/K2Node_FunctionEntry.cpp:98-177 — RegisterNets：引脚方向 check + 输出参数收进 Results",
+        "Engine/Source/Editor/BlueprintGraph/Private/K2Node_FunctionEntry.cpp:401-430 — AllocateDefaultPins（入口节点引脚一律 EGPD_Output）"
+      ]
+    },
+    {
+      "id": "iface.add-remove-semantics",
+      "title": "从蓝图移除接口时会发生什么（别踩这个坑）",
+      "keywords": [
+        "移除接口", "删除接口", "RemoveInterface", "Class Settings", "Interfaces",
+        "transfer the interface functions", "接口事件的连线丢了", "bAllowDeletion"
+      ],
+      "verdict": "Class Settings > Interfaces > Remove 会弹一个三选一对话框「Would you like to transfer the interface functions to be part of your blueprint?」。选 Yes：接口函数被提升为蓝图自己的函数/自定义事件，连线保住。选 No（默认）：走 RemoveInterface(..., bPreserveFunctions=false)，该接口的事件节点会被直接删掉，连线一起没。选 Cancel：中止。",
+      "details": [
+        "接口实现出来的函数图存根 bAllowDeletion=false，所以右键 Delete 是灰的；想删只能走 Class Settings 里移除接口。",
+        "提升路径 PromoteGraphFromInterfaceOverride 会给函数补上 FUNC_BlueprintCallable | FUNC_BlueprintEvent | FUNC_Public 并打开 bAllowDeletion。",
+        "想改名/改签名让接口重新适配，**通常不需要**移除接口——见规则 iface.event-vs-function 的 how_to_fix。"
+      ],
+      "sources": [
+        "Engine/Source/Editor/UnrealEd/Private/Kismet2/BlueprintEditorUtils.cpp:6594-6680 — RemoveInterface（6633-6665 删事件节点，6652/6658 提为 CustomEvent 并搬连线）",
+        "Engine/Source/Editor/UnrealEd/Private/Kismet2/BlueprintEditorUtils.cpp:6688-6730 — RemoveInterfaceFunction / PromoteGraphFromInterfaceOverride",
+        "Engine/Source/Editor/UnrealEd/Private/Kismet2/BlueprintEditorUtils.cpp:7357 — 新接口图存根 bAllowDeletion = false",
+        "Engine/Source/Editor/Kismet/Private/SMyBlueprint.cpp:3386 — CanDeleteGraph 读 bAllowDeletion",
+        "Engine/Source/Editor/UnrealEd/Private/Kismet2/BlueprintDetailsCustomization.cpp:6893-6918 — 那个三选一对话框与 bPreserveFunctions 的取值"
+      ]
+    },
+    {
+      "id": "iface.ui-internals",
+      "title": "右键菜单里哪些条目会出现、哪些不会（避免找不存在的菜单项）",
+      "keywords": [
+        "右键菜单", "My Blueprint", "为什么菜单里没有", "Implement function", "实现函数",
+        "SMyBlueprint", "IsAnInterfaceEvent", "CanImplementFunction", "图标"
+      ],
+      "verdict": "「实现这个接口函数」与「这是一个未实现的接口事件」是两个独立列表：IsAnInterfaceEvent = (GraphType == Interface && EdGraph == nullptr)，即接口来源、且还没有本地图/节点。一旦已经实现（无论做成事件还是函数图），它就从那个列表里消失。图标选择见 SBlueprintPalette.cpp:356-368（接口来源且可覆盖时用 OverrideFunction_16x / OverridePureFunction_16x）。",
+      "details": [
+        "SMyBlueprint::CanImplementFunction 要求 GraphAction 存在、EdGraph 为空、且不能聚焦到节点——所以已经实现的条目不会再给「实现」入口。",
+        "UK2Node_CallFunction.cpp:1577 也会用 FunctionCanBePlacedAsEvent 决定调用节点以什么形态出现，排错时这是第三个会被同一判定影响的 UI 位置。"
+      ],
+      "sources": [
+        "Engine/Source/Editor/Kismet/Private/SMyBlueprint.cpp:3140-3143 — IsAnInterfaceEvent",
+        "Engine/Source/Editor/Kismet/Private/SMyBlueprint.cpp:2789-2793 — CanImplementFunction",
+        "Engine/Source/Editor/Kismet/Private/SMyBlueprint.cpp:2835 — ImplementFunction 的门槛",
+        "Engine/Source/Editor/Kismet/Private/SBlueprintPalette.cpp:323 与 356-368 — 图标与可覆盖判定",
+        "Engine/Source/Editor/BlueprintGraph/Private/K2Node_CallFunction.cpp:1577 — 调用节点形态也受同一判定影响"
+      ]
+    },
+    {
+      "id": "anim.notify-tick",
+      "title": "AnimNotifyState 的每帧 Tick 通知是免费的，不需要开关",
+      "keywords": [
+        "AnimNotifyState", "NotifyTick", "每帧", "逐帧", "Received_NotifyTick",
+        "武器拖尾", "攻击判定", "判定窗口", "Notify Begin", "Notify End", "帧率"
+      ],
+      "verdict": "ANimNotifyState 在状态生效的每一帧都会被调用 Received_NotifyTick（Received_NotifyTick 是 BlueprintImplementableEvent），不需要在 Notify 资产里开任何标志、也不需要自己去 Tick 里查。Begin/End 只给窗口边界，窗口内的连续判定应该写在 Tick 通知里。",
+      "details": [
+        "签名：Received_NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float FrameDeltaTime, const FAnimNotifyEventReference& EventReference) const。",
+        "调用点是无条件的：AnimInstance 遍历当前活跃的 notify states，逐个调 NotifyTick。",
+        "推论：攻击判定的「开窗 → 每帧扫 → 关窗」三段，对应 NotifyBegin / NotifyTick / NotifyEnd；不要在 NotifyBegin 里只存一个起点然后指望别处推进。"
+      ],
+      "sources": [
+        "Engine/Source/Runtime/Engine/Private/Animation/AnimInstance.cpp:1682-1697 — 逐帧遍历活跃 notify states 调 NotifyTick",
+        "Engine/Source/Runtime/Engine/Classes/Animation/AnimNotifyState.h:37-38 — Received_NotifyTick 声明"
+      ]
+    }
+  ]
+}

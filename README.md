@@ -1,0 +1,260 @@
+# UE 5.7 近战连招系统 · 学习轨迹
+
+在 Epic 的 [Game Animation Sample](https://www.fab.com/listings/880e319a-a59e-4ed2-b268-b32dac7fa016) 之上，自己从零搭的一套近战连招系统。
+
+这个仓库是我的学习记录。**资产不是重点，踩过的坑和想明白的问题才是。**
+
+---
+
+## ⚠️ 先读这段：clone 下来不能直接打开
+
+本仓库**只包含我自己创作的部分**（约 15 MB），**不含基座素材**。
+
+缺的部分是 Epic 的示例内容（Echo / Paragon 角色、Game Animation Sample 的动画与蓝图、
+MetaHuman 等，约 5.1 GB），它们有各自的授权，不宜由我转发放进公开仓库。
+
+**要完整运行，请先获取基座：**
+
+1. 从 Fab 获取 [Game Animation Sample](https://www.fab.com/listings/880e319a-a59e-4ed2-b268-b32dac7fa016)（免费）
+2. 新建工程，`EngineAssociation` 选 **5.7**
+3. 把本仓库的 `Content/Combo_Demo/` 整个拖进新工程的 `Content/`
+4. 把 `Content/Levels/DefaultLevel.umap` 也拖进去覆盖同名文件
+
+资产内部引用的是包路径（`/Game/Combo_Demo/...`），只要放到相同位置就能被正确解析。
+
+> 反过来说：**这个仓库本身更像一份可以逐文件阅读的代码记录，而不是一个开箱即用的工程。**
+
+---
+
+## 项目背景
+
+我从 UE 的动画系统开始学，选了一个具体目标：**做一套手感说得过去的近战三连**。
+
+不用 GAS，不用 C++，纯蓝图。理由是先把动画状态机、蒙太奇、动画通知这三件事的
+边界摸清楚，再考虑往上叠框架。
+
+到 2026-10-14 的进度：玩家侧的战斗闭环已经跑通，NPC 侧还是空壳。
+
+---
+
+## 我做了什么
+
+### 1. 战斗组件 `AC_Combat`
+
+一个 ActorComponent（`Content/Combo_Demo/BP/Components/AC_Combat.uasset`，约 640 个节点），
+挂在 `SandboxCharacter_CMC` 上，**组件标签为 `Combat`**。
+
+> ⚠️ 那个标签是承重的：三个动画通知都靠 `GetComponentsByTag("Combat")` 找到组件。
+> 标签一丢，输入门控和武器拖尾会**静默失效**——不报错，只是不生效。
+
+初始值：
+
+| 变量 | 初值 | 用途 |
+|---|---|---|
+| `ComboIndex` | `0` | 当前连招段号 |
+| `InputEnabled` | `True` | 是否接受攻击输入 |
+| `Data Row` | `"Spear"` | 查 `DT_WeaponDetails` 的行名 |
+| `EquippedWeaponRow` | `None` | 当前装备的武器行 |
+| `PendingWeaponRow` | `None` | 待装备的武器行 |
+| `bWeaponBusy` | `False` | 装备/卸下过程中的互斥标志 |
+| `bWeaponInHand` | `False` | 武器是否在手上 |
+| `Weapon Trace On` | `False` | 拖尾检测开关 |
+| `CurrentBufferedInput` | `NotAttack` | 输入缓冲（见「已知问题」） |
+
+### 2. 连招系统（核心）
+
+**连招就是取数组的第 `ComboIndex` 项播放，播完把索引 +1，到头归零。**
+
+`AttackMontages` 数组实测内容：
+
+| 索引 | Montage | 输入禁用窗口 | 拖尾窗口 | 时长 |
+|---|---|---|---|---|
+| 0 | `AS_Combo01_01` | 0 – 0.388s | 0 – 0.587s | 1.83s |
+| 1 | `AS_Combo02_01` | 0 – 0.508s | 0 – 0.666s | 2.53s |
+| 2 | `AS_Combo03_02` | 0 – 0.692s | 0 – 0.928s | 2.50s |
+| 3 | `AS_Combo03_04` | 0 – 0.411s | 0 – 0.667s | 2.42s |
+| 4 | `AS_Combo02_04` | 0 – 0.875s | 0 – 0.997s | 2.92s |
+
+**播放顺序 = 数组顺序**，所以实际打出来是 `01_01 → 02_01 → 03_02 → 03_04 → 02_04`。
+
+`LightAttack` 的执行顺序：
+
+```
+PlayAnimMontage( AttackMontages[ComboIndex] )
+CachedInputRotation = GetInputRotation()      ← 记下出手瞬间的输入方向
+SetComponentTickEnabled(true)                 ← 打开 Tick 做转向插值
+IncrementInt(ComboIndex)                      ← 索引 +1
+if ComboIndex >= Array_Length(AttackMontages) → ComboIndex = 0
+```
+
+连招窗口靠**可重触发延迟**实现：攻击后启动 `RetriggerableDelay(2.0)`，
+超时未再攻击就把 `ComboIndex` 归零。每次攻击都会重置这个计时器，
+所以在 2 秒内连续点按就能一路接下去。
+
+按键绑定：
+
+| 输入 | 键 | 行为 |
+|---|---|---|
+| 攻击 | **鼠标左键** | 仅在 `bWeaponInHand == true` 时生效 |
+| 装备/卸下 | **左 Alt** | `bWeaponBusy` 互斥，在手中则卸下，否则装备 |
+
+### 3. 动画通知三件套
+
+| 资产 | 类型 | 作用 |
+|---|---|---|
+| `ANS_InputDisabled` | NotifyState | 窗口内关掉 `InputEnabled`，防止连点打断动作 |
+| `ANS_WeaponTrace` | NotifyState | 窗口内逐帧做武器扫掠检测 |
+| `AMS_Equipment` | NotifyState | 在指定时刻触发武器生成/挂载/显隐 |
+
+前两个都是**状态型**（有起止时间），因为"窗口"本身就是区间概念——
+用单点 Notify 去夹一个区间会很难维护。
+
+### 4. 武器装备流程
+
+数据来源是 `DT_WeaponDetails` 数据表 + 自定义结构体，目前一行：`Spear`。
+
+| 字段 | 值 |
+|---|---|
+| `EquipmentActor` | 软类引用 → `BP_MasterWeapon_C` |
+| `SocksNames_Hand` | `"Weapon"` |
+| `SocksNames_Back` | `"Weapon_Back"` |
+
+两个 socket 都定义在骨架 `SK_UEFN_Mannequin` 上。
+
+挂载目标：装备 → `Weapon`（手），卸下 / 生成到背后 → `Weapon_Back`（背）。
+
+有一个**幂等保护**值得注意：生成前会判断 `DataRow == EquippedWeaponRow && IsValid(CurrentWeapon)`，
+成立就直接返回——避免重复装备时刷出第二把武器。
+
+> 这里踩过一个坑：`Play Animation` 节点会**杀掉 AnimBP**，导致装备动作播完后角色
+> 卡在静态姿势。改用 `Play Montage` 并把后续逻辑挂到 `OnNotifyBegin` /
+> `OnCompleted` 委托上才解决。详细复盘见 `Docs/weapon_equip_fix_and_planA.md`。
+
+### 5. 武器拖尾检测
+
+`ANS_WeaponTrace` 激活期间，`Tick` 里用**上一帧和当前帧的武器顶点位置连成一条线段**做扫掠：
+
+```
+BoxTraceSingle(
+    Start          = PreviousTopTrace,
+    End            = CurrentTopTrace,
+    HalfSize       = (距离/2, 0, 0),
+    Orientation    = FindLookAtRotation(Start, End),
+    TraceChannel   = TraceTypeQuery1,
+    bIgnoreSelf    = true,
+    DrawDebugType  = ForDuration, DrawTime = 5.0
+)
+```
+
+命中就打印目标 `AC_NPC` 上的 `DisplayName`。用 Box 而不是 Line，是因为快速挥砍时
+两帧之间位移很大，线段检测会从敌人身上"穿过去"。
+
+### 6. 移动转向
+
+`Tick` 里把角色朝向按 `RInterpTo` 插值向 `CachedInputRotation`，速度 `13.0`。
+出手瞬间锁定方向，避免攻击过程中被鼠标带着转圈。
+
+---
+
+## 仓库结构
+
+```
+Content/
+  Combo_Demo/                     ← 全部由我创作
+    BP/
+      Components/AC_Combat        战斗组件本体
+      Actors/BP_MasterWeapon      武器 Actor（实现 BPI_WeaponActor）
+      DataTables/DT_WeaponDetails 武器配置表
+      Structures/ Enums/ Interfaces/
+    Animation/
+      Montage/                    8 个攻击 + 4 个装备蒙太奇
+      Notifies/                   3 个动画通知
+      Retaegeted/                 重定向后的动画序列
+  Levels/
+    DefaultLevel.umap             主关卡（战斗验证场）
+    NPCLevel.umap                 预留的 NPC 关卡
+Docs/
+  战斗系统交接/战斗系统交接文档.md   完整交接文档（含待办清单与验证步骤）
+  weapon_equip_fix_and_planA.md    Play Animation 杀死 AnimBP 的排查记录
+Scripts/                          UE Python 远程执行与探测脚本
+Plugins/KBaseUE/                  UE 5.7 引擎语义知识库（自用工具）
+```
+
+> 这里**没有用 Git LFS**。仓库只有 15 MB，不用 LFS 能让 clone 的人省掉装 git-lfs 的步骤。
+> 如果以后资产长得很大，再迁移也来得及。
+
+---
+
+## 踩过的坑
+
+这一节是我觉得最值得留下来的部分。
+
+### ① `Play Animation` 会杀死 AnimBP
+
+装备动作播完后角色僵住。原因是用 `Play Animation` 节点会**接管并停掉动画蓝图**。
+换成 `Play Montage` 后正常。
+
+**教训**：`Play Animation` 是"播放一段动画"，`Play Montage` 是"在 AnimBP 之上插播一段"。
+只要角色还要继续跑状态机，就该用后者。
+
+### ② 连招索引越界判断写错，导致连招永远在第 2 段循环
+
+原本写的是 `ComboIndex >= Array_LastIndex`。数组有 5 项时 `LastIndex == 4`，
+于是索引涨到 4 就被提前归零——**最后一段永远打不出来**。
+
+正确写法是 `>= Array_Length`（长度 5）。
+
+**教训**：「最后一个下标」和「长度」差 1，这类 off-by-one 不会报错，只会让功能"看起来怪怪的"。
+
+### ③ 用 `Delay` 做连招窗口，第二次攻击就断了
+
+`Delay` 是**一次性**的：第一次攻击启动它，2 秒后归零 `ComboIndex`。
+但第二次攻击时它已经在运行，不会重新计时——于是第二次攻击后连招窗口沿用第一次的剩余时间，
+很快就超时。
+
+换成 `RetriggerableDelay`（可重触发延迟）后，每次攻击都会重置计时。
+
+**教训**：凡是"每次触发都要重新计时"的场景，都要用可重触发版本。
+
+### ④ 蓝图接口的函数不一定能做成事件
+
+UE 里接口函数实现成**事件（菱形）还是函数图**，取决于签名——
+判定条件是 `FunctionCanBePlacedAsEvent = !HasFunctionAnyOutputParameter()`，
+**只要有返回值就必须实现成函数**。
+
+### ⑤ `.cmd` 批处理文件必须用 CRLF 换行
+
+这个坑很迷惑：脚本报 `'xxx' is not recognized as an internal or external command`，
+但那一行明明写着 `echo`。
+
+真相是 cmd.exe 按块读取批处理文件，**LF 行尾会让它错位，把行首的 `echo ` 吃掉**，
+剩下的文字就被当成命令执行了。中文注释越多错得越离谱。
+
+用 `git ls-files --eol -- "*.cmd"` 可以自查，`w/` 那一列应该是 `crlf`。
+
+---
+
+## 已知问题与下一步
+
+按优先级，细节见 `Docs/战斗系统交接/战斗系统交接文档.md`。
+
+| 级别 | 问题 |
+|---|---|
+| 🔴 P0 | **`AttackMontages` 顺序疑似插错位**。现在是 `01_01 → 02_01 → 03_02 → 03_04 → 02_04`，按命名规律应该是 `01_01 → 02_01 → 02_04 → 03_02 → 03_04`。数组顺序 = 播放顺序，直接影响手感 |
+| 🔴 P0 | 有 3 个蒙太奇既不在数组里、也没有拖尾通知：`AS_Combo02_02`、`AS_Combo02_03`、`AS_Combo03_01` |
+| 🟠 P1 | **`CurrentBufferedInput` 只写不读**——输入缓冲实际未生效，被写入后没有任何地方消费它 |
+| 🟠 P1 | NPC 侧完全空白：`AC_NPC` 与 `BP_MasterNPC` 是空壳，受击、血量、AI、死亡都没有 |
+| 🟡 P2 | `LastTraceLocation` 是死变量（只读不写） |
+| 🟡 P2 | `AM_Equip_Spear` / `AM_Unequip_Spear` 全工程零引用 |
+| 🔵 P3 | 连招窗口固定 2.0s，而最长的蒙太奇是 2.92s——数值待实机调 |
+
+---
+
+## 基座项目
+
+本项目基于 **Epic Games** 的 [Game Animation Sample](https://www.fab.com/listings/880e319a-a59e-4ed2-b268-b32dac7fa016)。
+
+该示例提供了本仓库刻意未包含的动画、角色与蓝图基座。使用者请自行从 Fab 获取，
+并遵守 Epic 的授权条款。
+
+`Content/Combo_Demo/` 及其下的全部资产、`Docs/` 下的文档，均为本人创作。
