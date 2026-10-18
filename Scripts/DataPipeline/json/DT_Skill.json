@@ -1,0 +1,18 @@
+[
+  {"Name": "qi.max", "Key": "qi.max", "Value": 100, "Unit": "点", "Note": "近战技能与灵能手枪共用的能量池"},
+  {"Name": "qi.regen.normal", "Key": "qi.regen.normal", "Value": 8, "Unit": "点/秒", "Note": "核心节奏参数：12.5 秒可由空槽自然回满"},
+  {"Name": "qi.regen.aim_mult", "Key": "qi.regen.aim_mult", "Value": 0.5, "Unit": "倍", "Note": "★补齐策划书规则：举枪瞄准时回复减半，抑制站桩磨血"},
+  {"Name": "qi.regen.aim_actual", "Key": "qi.regen.aim_actual", "Value": 4, "Unit": "点/秒", "Note": "公式联动：常态回复 × 瞄准倍率 = 4.0 点/秒"},
+  {"Name": "qi.cost.basic", "Key": "qi.cost.basic", "Value": 0, "Unit": "点", "Note": "基础动作零消耗，保证核心博弈永不卡手"},
+  {"Name": "qi.cost.heavy", "Key": "qi.cost.heavy", "Value": 10, "Unit": "点", "Note": "少量消耗灵焏，限制无脑蓄力重击"},
+  {"Name": "qi.cost.rift_step", "Key": "qi.cost.rift_step", "Value": 15, "Unit": "点", "Note": "可穿透业骸身体绕后；第 1 关解锁"},
+  {"Name": "qi.cost.rift_thrust", "Key": "qi.cost.rift_thrust", "Value": 15, "Unit": "点", "Note": "闪转后追加 25 点突刺伤害，用于快速贴身远程射手"},
+  {"Name": "qi.cost.drain_sec", "Key": "qi.cost.drain_sec", "Value": 12, "Unit": "点/秒", "Note": "每秒转化 15 点承负并削弱目标移速；第 1 关解锁"},
+  {"Name": "qi.cost.rift_burst", "Key": "qi.cost.rift_burst", "Value": 30, "Unit": "点", "Note": "造成 35 点范围伤害并强制打断周围敌人施法；第 2 关解锁"},
+  {"Name": "qi.cost.break_illusion", "Key": "qi.cost.break_illusion", "Value": 20, "Unit": "点", "Note": "驱散两舌之蛊与幻象迷雾；第 2 关解锁"},
+  {"Name": "gun.cost.per_shot", "Key": "gun.cost.per_shot", "Value": 6, "Unit": "点", "Note": "与主动技能争夺同一条灵焏池"},
+  {"Name": "qi.shots_per_full", "Key": "qi.shots_per_full", "Value": 16.666666666667, "Unit": "发", "Note": "公式联动：上限 ÷ 单发消耗 ≈ 16.67 发"},
+  {"Name": "qi.sustain_rate", "Key": "qi.sustain_rate", "Value": 1.333333333333, "Unit": "发/秒", "Note": "公式联动：1.33 发/秒远低于手枪射速(4发/秒)，逼迫远近交替"},
+  {"Name": "passive.mind_shackle", "Key": "passive.mind_shackle", "Value": 25, "Unit": "%", "Note": "将玩家受击硬直由 0.38s 压缩至约 0.28s；第 1 关解锁"},
+  {"Name": "passive.karma_sense", "Key": "passive.karma_sense", "Value": 100, "Unit": "%", "Note": "越肩瞄准时高亮敌人弱点，命中弱点承负获取翻倍；第 2 关解锁"}
+]

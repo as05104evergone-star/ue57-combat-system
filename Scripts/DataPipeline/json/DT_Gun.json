@@ -1,0 +1,16 @@
+[
+  {"Name": "gun.fire.rate", "Key": "gun.fire.rate", "Value": 4, "Unit": "发/秒", "Note": "按住左键自动连射，单发间隔 0.25 秒"},
+  {"Name": "gun.fire.damage", "Key": "gun.fire.damage", "Value": 6, "Unit": "点", "Note": "刻意低于长枪轻击第 1 段(12点)，明确辅助工具定位"},
+  {"Name": "gun.fire.weakspot_mult", "Key": "gun.fire.weakspot_mult", "Value": 1.5, "Unit": "倍", "Note": "命中敌人头部/胸口过载核心时生效"},
+  {"Name": "gun.fire.weakspot_dmg", "Key": "gun.fire.weakspot_dmg", "Value": 9, "Unit": "点", "Note": "公式联动：单发伤害 × 弱点倍率 = 9.0 点，并强制打断蓄力/召唤"},
+  {"Name": "gun.range.effective", "Key": "gun.range.effective", "Value": 35, "Unit": "m", "Note": "覆盖 D 区前庭龙门架与第 3 关悬索桥高台距离"},
+  {"Name": "gun.range.max", "Key": "gun.range.max", "Value": 50, "Unit": "m", "Note": "即时射线检测（LineTrace）最大长度"},
+  {"Name": "gun.aim.enter_time", "Key": "gun.aim.enter_time", "Value": 0.15, "Unit": "秒", "Note": "右键举枪摄像机平滑推近时间"},
+  {"Name": "gun.aim.exit_time", "Key": "gun.aim.exit_time", "Value": 0.12, "Unit": "秒", "Note": "松开右键快速回到近战广阔视野"},
+  {"Name": "gun.aim.move_mult", "Key": "gun.aim.move_mult", "Value": 0.55, "Unit": "倍", "Note": "构成“精确瞄准弱点”与“高速走位闪避”的博弈"},
+  {"Name": "gun.aim.fov_zoom", "Key": "gun.aim.fov_zoom", "Value": 20, "Unit": "%", "Note": "★补齐基准值：默认 90° 收窄至 72°，清晰看清高台且不晕 3D"},
+  {"Name": "gun.spread.base", "Key": "gun.spread.base", "Value": 0.2, "Unit": "°", "Note": "确保第一枪点射机关节点与弱点指哪打哪"},
+  {"Name": "gun.spread.max", "Key": "gun.spread.max", "Value": 1.8, "Unit": "°", "Note": "★补齐基准值：抑制按住左键无脑泼水，鼓励短点射"},
+  {"Name": "gun.recoil.kick", "Key": "gun.recoil.kick", "Value": 0.6, "Unit": "°", "Note": "★补齐基准值：提供清脆的脉冲电弧跳动反馈"},
+  {"Name": "gun.karma.gain", "Key": "gun.karma.gain", "Value": 1, "Unit": "点", "Note": "跨表公式联动 01 表 K-12（固定为 1 点），杜绝远程攒大招"}
+]

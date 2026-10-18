@@ -1,0 +1,158 @@
+{
+ "mode": "run",
+ "struct_path": "/Game/Combo_Demo/BP/Structures/S_GameParam",
+ "dest": "/Game/Combo_Demo/BP/DataTables",
+ "tables": {
+  "DT_Karma": {
+   "status": "ok",
+   "asset": "/Game/Combo_Demo/BP/DataTables/DT_Karma",
+   "created": false,
+   "json_rows": 21,
+   "imported_rows": 21,
+   "fill_return": true,
+   "saved": true,
+   "verify": "ok",
+   "rows": 21,
+   "key_prefix_violations": []
+  },
+  "DT_Combat": {
+   "status": "ok",
+   "asset": "/Game/Combo_Demo/BP/DataTables/DT_Combat",
+   "created": false,
+   "json_rows": 23,
+   "imported_rows": 23,
+   "fill_return": true,
+   "saved": true,
+   "verify": "ok",
+   "rows": 23,
+   "key_prefix_violations": []
+  },
+  "DT_Skill": {
+   "status": "ok",
+   "asset": "/Game/Combo_Demo/BP/DataTables/DT_Skill",
+   "created": false,
+   "json_rows": 16,
+   "imported_rows": 16,
+   "fill_return": true,
+   "saved": true,
+   "verify": "ok",
+   "rows": 16,
+   "key_prefix_violations": [
+    "gun.cost.per_shot"
+   ]
+  },
+  "DT_Enemy": {
+   "status": "ok",
+   "asset": "/Game/Combo_Demo/BP/DataTables/DT_Enemy",
+   "created": false,
+   "json_rows": 29,
+   "imported_rows": 29,
+   "fill_return": true,
+   "saved": true,
+   "verify": "ok",
+   "rows": 29,
+   "key_prefix_violations": []
+  },
+  "DT_Boss": {
+   "status": "ok",
+   "asset": "/Game/Combo_Demo/BP/DataTables/DT_Boss",
+   "created": false,
+   "json_rows": 15,
+   "imported_rows": 15,
+   "fill_return": true,
+   "saved": true,
+   "verify": "ok",
+   "rows": 15,
+   "key_prefix_violations": []
+  },
+  "DT_Level": {
+   "status": "ok",
+   "asset": "/Game/Combo_Demo/BP/DataTables/DT_Level",
+   "created": false,
+   "json_rows": 14,
+   "imported_rows": 14,
+   "fill_return": true,
+   "saved": true,
+   "verify": "ok",
+   "rows": 14,
+   "key_prefix_violations": []
+  },
+  "DT_Rating": {
+   "status": "ok",
+   "asset": "/Game/Combo_Demo/BP/DataTables/DT_Rating",
+   "created": false,
+   "json_rows": 10,
+   "imported_rows": 10,
+   "fill_return": true,
+   "saved": true,
+   "verify": "ok",
+   "rows": 10,
+   "key_prefix_violations": []
+  },
+  "DT_Gun": {
+   "status": "ok",
+   "asset": "/Game/Combo_Demo/BP/DataTables/DT_Gun",
+   "created": false,
+   "json_rows": 14,
+   "imported_rows": 14,
+   "fill_return": true,
+   "saved": true,
+   "verify": "ok",
+   "rows": 14,
+   "key_prefix_violations": []
+  },
+  "DT_Prop": {
+   "status": "ok",
+   "asset": "/Game/Combo_Demo/BP/DataTables/DT_Prop",
+   "created": false,
+   "json_rows": 11,
+   "imported_rows": 11,
+   "fill_return": true,
+   "saved": true,
+   "verify": "ok",
+   "rows": 11,
+   "key_prefix_violations": []
+  }
+ },
+ "checks": {
+  "DT_Combat::combat.parry.window": {
+   "table": "DT_Combat",
+   "key": "combat.parry.window",
+   "expected": 0.22,
+   "row_exists": true,
+   "actual": 0.22,
+   "unit": "秒",
+   "note": "NSLOCTEXT(\"DT_Combat [696A7E8BAD31C54C91AB078BD9FCE060]\", \"combat.parry.window_Note\", \"★手感命门：约 13 帧（60FPS 下），兼具挑战与成就感\")",
+   "result": "PASS"
+  },
+  "DT_Combat::player.hp.max": {
+   "table": "DT_Combat",
+   "key": "player.hp.max",
+   "expected": 100.0,
+   "row_exists": true,
+   "actual": 100,
+   "unit": "点",
+   "note": "NSLOCTEXT(\"DT_Combat [696A7E8BAD31C54C91AB078BD9FCE060]\", \"player.hp.max_Note\", \"承受杂兵约 10 次普攻或 Boss 约 4–5 次重击\")",
+   "result": "PASS"
+  },
+  "DT_Karma::karma.gain.parry": {
+   "table": "DT_Karma",
+   "key": "karma.gain.parry",
+   "expected": 18.0,
+   "row_exists": true,
+   "actual": 18,
+   "unit": "点",
+   "note": "NSLOCTEXT(\"DT_Karma [54B21A5D54CCE942C9D900442BD37E25]\", \"karma.gain.parry_Note\", \"★核心来源：成功招架 4–5 次配合反打即可满槽\")",
+   "result": "PASS"
+  }
+ },
+ "engine": "5.7.4-51494982+++UE5+Release-5.7",
+ "struct_created": false,
+ "struct_fields": [
+  "Key",
+  "Value",
+  "Unit",
+  "Note"
+ ],
+ "status": "PASS"
+}

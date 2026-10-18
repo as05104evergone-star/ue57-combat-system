@@ -1,0 +1,50 @@
+{
+ "array_friendly": {
+  "fill": true,
+  "rows": [
+   "Row_A"
+  ],
+  "export": "[\r\n\t{\r\n\t\t\"Name\": \"Row_A\",\r\n\t\t\"DataTableIdentifier\": \"SelfTest\",\r\n\t\t\"EquipmentName\": \"Spear_X\",\r\n\t\t\"EquipmentDescriptions\": \"NSLOCTEXT(\\\"DT_J_0 [D1DAEEBB03E521274D487DAB3FFCC574]\\\", \\\"Row_A_EquipmentDescriptions\\\", \\\"自检文本\\\")\",\r\n\t\t\"EquipmentActor\": \"None\",\r\n\t\t\"SocksNames_Hand\": \"hand_r\",\r\n\t\t\"SocksNames_Back\": \"spine_01\"\r\n\t}\r\n]"
+ },
+ "array_mangled": {
+  "fill": true,
+  "rows": [
+   "Row_A"
+  ],
+  "export": "[\r\n\t{\r\n\t\t\"Name\": \"Row_A\",\r\n\t\t\"DataTableIdentifier\": \"SelfTest\",\r\n\t\t\"EquipmentName\": \"Spear_X\",\r\n\t\t\"EquipmentDescriptions\": \"NSLOCTEXT(\\\"DT_J_1 [CA54D751903BF4ADB07ACD3619A4340F]\\\", \\\"Row_A_EquipmentDescriptions\\\", \\\"自检文本\\\")\",\r\n\t\t\"EquipmentActor\": \"None\",\r\n\t\t\"SocksNames_Hand\": \"hand_r\",\r\n\t\t\"SocksNames_Back\": \"spine_01\"\r\n\t}\r\n]"
+ },
+ "array_two_rows": {
+  "fill": true,
+  "rows": [
+   "Row_A",
+   "Row_B"
+  ],
+  "export": "[\r\n\t{\r\n\t\t\"Name\": \"Row_A\",\r\n\t\t\"DataTableIdentifier\": \"SelfTest\",\r\n\t\t\"EquipmentName\": \"Spear_X\",\r\n\t\t\"EquipmentDescriptions\": \"NSLOCTEXT(\\\"DT_J_2 [1C96FC120AFCFD57841F829EFE910A4E]\\\", \\\"Row_A_EquipmentDescriptions\\\", \\\"自检文本\\\")\",\r\n\t\t\"EquipmentActor\": \"None\",\r\n\t\t\"SocksNames_Hand\": \"hand_r\",\r\n\t\t\"SocksNames_Back\": \"spine_01\"\r\n\t},\r\n\t{\r\n\t\t\"Name\": \"Row_B\",\r\n\t\t\"DataTableIdentifier\": \"SelfTest\",\r\n\t\t\"EquipmentName\": \"Spear_Y\",\r\n\t\t\"EquipmentDescriptions\": \"NSLOCTEXT(\\\"DT_J_2 [1C96FC120AFCFD57841F829EFE910A4E]\\\", \\\"Row_B_EquipmentDescriptions\\\", \\\"自检文本\\\")\",\r\n\t\t\"EquipmentActor\": \"None\",\r\n\t\t\"SocksNames_Hand\": \"hand_r\",\r\n\t\t\"SocksNames_Back\": \"spine_01\"\r\n\t}\r\n]"
+ },
+ "dict_oldshape": {
+  "fill": true,
+  "rows": [],
+  "export": "[]"
+ },
+ "reimport_1st": {
+  "fill": true,
+  "rows": [
+   "Row_A"
+  ],
+  "export": "[\r\n\t{\r\n\t\t\"Name\": \"Row_A\",\r\n\t\t\"DataTableIdentifier\": \"SelfTest\",\r\n\t\t\"EquipmentName\": \"Spear_X\",\r\n\t\t\"EquipmentDescriptions\": \"NSLOCTEXT(\\\"DT_J_Reimport [53F73822D810A2830D8D83084ECED2D7]\\\", \\\"Row_A_EquipmentDescriptions\\\", \\\"自检文本\\\")\",\r\n\t\t\"EquipmentActor\": \"None\",\r\n\t\t\"SocksNames_Hand\": \"hand_r\",\r\n\t\t\"SocksNames_Back\": \"spine_01\"\r\n\t}\r\n]"
+ },
+ "reimport_2nd": {
+  "fill": true,
+  "rows": [
+   "Row_A"
+  ],
+  "export": "[\r\n\t{\r\n\t\t\"Name\": \"Row_A\",\r\n\t\t\"DataTableIdentifier\": \"SelfTest\",\r\n\t\t\"EquipmentName\": \"Spear_Z\",\r\n\t\t\"EquipmentDescriptions\": \"NSLOCTEXT(\\\"DT_J_Reimport [53F73822D810A2830D8D83084ECED2D7]\\\", \\\"Row_A_EquipmentDescriptions\\\", \\\"自检文本\\\")\",\r\n\t\t\"EquipmentActor\": \"None\",\r\n\t\t\"SocksNames_Hand\": \"hand_r\",\r\n\t\t\"SocksNames_Back\": \"spine_01\"\r\n\t}\r\n]"
+ },
+ "array_friendly_bom": {
+  "fill": true,
+  "rows": [],
+  "export": "[]"
+ },
+ "text_via_json": "[\r\n\t{\r\n\t\t\"Name\": \"Row_A\",\r\n\t\t\"DataTableIdentifier\": \"SelfTest\",\r\n\t\t\"EquipmentName\": \"Spear_X\",\r\n\t\t\"EquipmentDescriptions\": \"NSLOCTEXT(\\\"DT_J_0 [D1DAEEBB03E521274D487DAB3FFCC574]\\\", \\\"Row_A_EquipmentDescriptions\\\", \\\"自检文本\\\")\",\r\n\t\t\"EquipmentActor\": \"None\",\r\n\t\t\"SocksNames_Hand\": \"hand_r\",\r\n\t\t\"SocksNames_Back\": \"spine_01\"\r\n\t}\r\n]",
+ "text_via_csv": "[\r\n\t{\r\n\t\t\"Name\": \"Row_A\",\r\n\t\t\"DataTableIdentifier\": \"SelfTest\",\r\n\t\t\"EquipmentName\": \"Spear_X\",\r\n\t\t\"EquipmentDescriptions\": \"NSLOCTEXT(\\\"DT_J_0 [D1DAEEBB03E521274D487DAB3FFCC574]\\\", \\\"Row_A_EquipmentDescriptions\\\", \\\"自检文本\\\")\",\r\n\t\t\"EquipmentActor\": \"None\",\r\n\t\t\"SocksNames_Hand\": \"hand_r\",\r\n\t\t\"SocksNames_Back\": \"spine_01\"\r\n\t}\r\n]"
+}

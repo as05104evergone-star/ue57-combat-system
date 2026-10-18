@@ -1,0 +1,12 @@
+[
+  {"Name": "rating.tier.count", "Key": "rating.tier.count", "Value": 3, "Unit": "档", "Note": "共设 S（特优）/ A（合规）/ B（生还）三档"},
+  {"Name": "rating.threshold.s", "Key": "rating.threshold.s", "Value": 850, "Unit": "分", "Note": "满分 1000 分；要求熟练掌握招架反打且通关迅速"},
+  {"Name": "rating.threshold.a", "Key": "rating.threshold.a", "Value": 650, "Unit": "分", "Note": "正常完成关卡主线与大部分战斗即可达成"},
+  {"Name": "rating.threshold.b", "Key": "rating.threshold.b", "Value": 400, "Unit": "分", "Note": "通关即保底授予 B 级，不设羞辱性低评级"},
+  {"Name": "rating.weight.parry", "Key": "rating.weight.parry", "Value": 35, "Unit": "%", "Note": "★最高权重：第 1 关成功招架 ≥12 次即拿满本项 350 分"},
+  {"Name": "rating.weight.time", "Key": "rating.weight.time", "Value": 25, "Unit": "%", "Note": "第 1 关 ≤10 分钟拿满 250 分，每超 30 秒扣 25 分"},
+  {"Name": "rating.weight.finisher", "Key": "rating.weight.finisher", "Value": 20, "Unit": "%", "Note": "第 1 关释放 ≥2 次「承负净化」拿满 200 分"},
+  {"Name": "rating.weight.kills", "Key": "rating.weight.kills", "Value": 10, "Unit": "%", "Note": "击败关卡内 ≥90% 敌人拿满 100 分"},
+  {"Name": "rating.weight.weakspot", "Key": "rating.weight.weakspot", "Value": 10, "Unit": "%", "Note": "最低权重：鼓励点射打断施法，但不强迫纯近战玩家频繁开枪"},
+  {"Name": "rating.weight.total", "Key": "rating.weight.total", "Value": 100, "Unit": "%", "Note": "公式自动校验：权重总和必须恒等于 100%"}
+]

@@ -1,0 +1,16 @@
+[
+  {"Name": "level1.time.min", "Key": "level1.time.min", "Value": 8, "Unit": "分钟", "Note": "课程 Demo 舞台：外郭第七街区与精炼厂前庭"},
+  {"Name": "level1.time.max", "Key": "level1.time.max", "Value": 12, "Unit": "分钟", "Note": "含 2 段短过场（合计 ≤90 秒）与 5 份可收集环境证物"},
+  {"Name": "level1.zone.count", "Key": "level1.zone.count", "Value": 6, "Unit": "个", "Note": "A 出生暗巷 / B 教学岔口 / C 主街 / D 前庭遭遇 / E 高压闸门 / F 封锁广场"},
+  {"Name": "level1.puzzle.nodes", "Key": "level1.puzzle.nodes", "Value": 2, "Unit": "个", "Note": "E 区高压能量闸门两侧各 1 个，用手枪击穿解锁"},
+  {"Name": "level1.prop.barrels", "Key": "level1.prop.barrels", "Value": 2, "Unit": "个", "Note": "D 区与 E 区各 1 处，提供“引爆速清 vs 留怪攒承负”策略分叉"},
+  {"Name": "level1.combat.waves", "Key": "level1.combat.waves", "Value": 2, "Unit": "波", "Note": "第 1 波杀生之影群；第 2 波混编偷盗之魅与高台狙击手"},
+  {"Name": "level1.shooter.spots", "Key": "level1.shooter.spots", "Value": 2, "Unit": "处", "Note": "D 区龙门架 1 处 + F 区 Boss 战二阶段高台 1 处"},
+  {"Name": "level2.time.min", "Key": "level2.time.min", "Value": 12, "Unit": "分钟", "Note": "三号灵焏精炼厂车间 + 地下废弃医疗站"},
+  {"Name": "level2.time.max", "Key": "level2.time.max", "Value": 15, "Unit": "分钟", "Note": "含培养舱突围战的「承负汲取」实战伦理抉择"},
+  {"Name": "level2.puzzle.nodes", "Key": "level2.puzzle.nodes", "Value": 3, "Unit": "个", "Note": "按导流顺序依次射击 3 个节点疏通主排污阀"},
+  {"Name": "level2.prop.weights", "Key": "level2.prop.weights", "Value": 1, "Unit": "处", "Note": "射断高空吊具锁链砸穿车间地板，开辟捷径"},
+  {"Name": "level3.time.target", "Key": "level3.time.target", "Value": 15, "Unit": "分钟", "Note": "内城跨区高架轨道、天篆碑回廊与「律令之巅」主控台"},
+  {"Name": "level3.boss.phases", "Key": "level3.boss.phases", "Value": 3, "Unit": "阶", "Note": "与 05 表 B-13 严格对齐"},
+  {"Name": "level.global.max_time", "Key": "level.global.max_time", "Value": 15, "Unit": "分钟", "Note": "★防膨胀红线：超时即代表跑图通道过长，须压缩走廊而非加怪"}
+]

@@ -1,0 +1,12 @@
+Name,Key,Value,Unit,Note
+"prop.barrel.damage","prop.barrel.damage","60","点","高于杀生之影生命(50点)，一发引爆即可清空周围杂兵"
+"prop.barrel.radius","prop.barrel.radius","6","m","覆盖标准街巷宽度与前庭集装箱空地"
+"prop.barrel.fuse_time","prop.barrel.fuse_time","1.2","秒","冒出刺目青白电弧与蜂鸣，给近战误触的玩家留出闪避时间"
+"prop.barrel.hits_to_detonate","prop.barrel.hits_to_detonate","1","次","手枪点射 1 枪、长枪轻击 1 下或相邻储罐殉爆均可触发"
+"prop.barrel.karma_gain","prop.barrel.karma_gain","0","点","★关键权衡：用炸药桶清场最快，但拿不到半点承负能量"
+"prop.node.hits_required","prop.node.hits_required","1","次","第 1 关 E 区闸门设 2 个节点，第 2 关排污阀设 3 个节点"
+"prop.node.reset_time","prop.node.reset_time","8","秒","第 2 关需在 8 秒内依次点射 3 个节点完成回路导通"
+"prop.node.melee_fallback","prop.node.melee_fallback","1","布尔(0/1)","1=开启保底：走近重击亦可击碎，防止远程模块调整时卡关"
+"prop.weight.hits_required","prop.weight.hits_required","1","次","第 2 关车间高空悬挂，一枪射断锁链即可砸开地面通道"
+"prop.weight.crush_damage","prop.weight.crush_damage","150","点","若下方有巡逻的破律者外勤，可直接砸死"
+"prop.gate.lock_delay","prop.gate.lock_delay","0.5","秒","玩家踏入战斗区后升起半透明蜂窝力场，防止把怪拉出边界"

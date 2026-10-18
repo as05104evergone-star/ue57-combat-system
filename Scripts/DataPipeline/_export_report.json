@@ -1,0 +1,168 @@
+{
+    "xlsx":  "C:\\Users\\123\\Desktop\\游戏架构设计\\数值配置表-界域律令\\数值配置表-界域律令.xlsx",
+    "exported_at":  "2026-10-18T20:57:33",
+    "tables":  {
+                   "DT_Karma":  {
+                                    "sheet":  "01 承负系统",
+                                    "header_row":  4,
+                                    "columns":  {
+                                                    "key":  "D",
+                                                    "value":  "E",
+                                                    "unit":  "F",
+                                                    "note":  "H",
+                                                    "id":  "A",
+                                                    "name":  "C"
+                                                },
+                                    "rows":  21,
+                                    "skipped":  [
+
+                                                ],
+                                    "csv":  "csv/DT_Karma.csv",
+                                    "json":  "json/DT_Karma.json"
+                                },
+                   "DT_Combat":  {
+                                     "sheet":  "02 战斗判定",
+                                     "header_row":  4,
+                                     "columns":  {
+                                                     "key":  "D",
+                                                     "value":  "E",
+                                                     "unit":  "F",
+                                                     "note":  "H",
+                                                     "id":  "A",
+                                                     "name":  "C"
+                                                 },
+                                     "rows":  23,
+                                     "skipped":  [
+
+                                                 ],
+                                     "csv":  "csv/DT_Combat.csv",
+                                     "json":  "json/DT_Combat.json"
+                                 },
+                   "DT_Skill":  {
+                                    "sheet":  "03 技能消耗",
+                                    "header_row":  4,
+                                    "columns":  {
+                                                    "key":  "D",
+                                                    "value":  "E",
+                                                    "unit":  "F",
+                                                    "note":  "H",
+                                                    "id":  "A",
+                                                    "name":  "C"
+                                                },
+                                    "rows":  16,
+                                    "skipped":  [
+
+                                                ],
+                                    "csv":  "csv/DT_Skill.csv",
+                                    "json":  "json/DT_Skill.json"
+                                },
+                   "DT_Enemy":  {
+                                    "sheet":  "04 敌人参数",
+                                    "header_row":  4,
+                                    "columns":  {
+                                                    "key":  "D",
+                                                    "value":  "E",
+                                                    "unit":  "F",
+                                                    "note":  "G",
+                                                    "id":  "A",
+                                                    "name":  "C"
+                                                },
+                                    "rows":  29,
+                                    "skipped":  [
+
+                                                ],
+                                    "csv":  "csv/DT_Enemy.csv",
+                                    "json":  "json/DT_Enemy.json"
+                                },
+                   "DT_Boss":  {
+                                   "sheet":  "05 Boss阶段",
+                                   "header_row":  4,
+                                   "columns":  {
+                                                   "key":  "E",
+                                                   "value":  "F",
+                                                   "unit":  "G",
+                                                   "note":  "H",
+                                                   "id":  "A",
+                                                   "name":  "D"
+                                               },
+                                   "rows":  15,
+                                   "skipped":  [
+
+                                               ],
+                                   "csv":  "csv/DT_Boss.csv",
+                                   "json":  "json/DT_Boss.json"
+                               },
+                   "DT_Level":  {
+                                    "sheet":  "06 关卡目标",
+                                    "header_row":  4,
+                                    "columns":  {
+                                                    "key":  "D",
+                                                    "value":  "E",
+                                                    "unit":  "F",
+                                                    "note":  "G",
+                                                    "id":  "A",
+                                                    "name":  "C"
+                                                },
+                                    "rows":  14,
+                                    "skipped":  [
+
+                                                ],
+                                    "csv":  "csv/DT_Level.csv",
+                                    "json":  "json/DT_Level.json"
+                                },
+                   "DT_Rating":  {
+                                     "sheet":  "07 结算评级",
+                                     "header_row":  4,
+                                     "columns":  {
+                                                     "key":  "D",
+                                                     "value":  "E",
+                                                     "unit":  "F",
+                                                     "note":  "G",
+                                                     "id":  "A",
+                                                     "name":  "C"
+                                                 },
+                                     "rows":  10,
+                                     "skipped":  [
+
+                                                 ],
+                                     "csv":  "csv/DT_Rating.csv",
+                                     "json":  "json/DT_Rating.json"
+                                 },
+                   "DT_Gun":  {
+                                  "sheet":  "09 远程武器",
+                                  "header_row":  4,
+                                  "columns":  {
+                                                  "key":  "D",
+                                                  "value":  "E",
+                                                  "unit":  "F",
+                                                  "note":  "H",
+                                                  "id":  "A",
+                                                  "name":  "C"
+                                              },
+                                  "rows":  14,
+                                  "skipped":  [
+
+                                              ],
+                                  "csv":  "csv/DT_Gun.csv",
+                                  "json":  "json/DT_Gun.json"
+                              },
+                   "DT_Prop":  {
+                                   "sheet":  "10 可破坏物与机关",
+                                   "header_row":  4,
+                                   "columns":  {
+                                                   "key":  "D",
+                                                   "value":  "E",
+                                                   "unit":  "F",
+                                                   "note":  "G",
+                                                   "id":  "A",
+                                                   "name":  "C"
+                                               },
+                                   "rows":  11,
+                                   "skipped":  [
+
+                                               ],
+                                   "csv":  "csv/DT_Prop.csv",
+                                   "json":  "json/DT_Prop.json"
+                               }
+               }
+}

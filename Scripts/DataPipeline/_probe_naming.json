@@ -1,0 +1,91 @@
+{
+ "src": "/Game/Combo_Demo/BP/Structures/BS_WeaponDetails",
+ "column_names": [
+  "DataTableIdentifier_11_FB142BF8451E9680A70BBEAA0DD613A8",
+  "EquipmentName_7_FF8E91F240BEAC46619CF1AFA38737AF",
+  "EquipmentDescriptions_6_44F733414680C41591509BA0C7991772",
+  "EquipmentActor_14_D67659884D9FFE13B5157FAE771527E7",
+  "SocksNames_Hand_18_85F32E6B4B9992A01995D6A6BCC96B5E",
+  "SocksNames_Back_21_D0AC64DB4553817E675B2B803DAAA7D0"
+ ],
+ "friendly_derived": [
+  "DataTableIdentifier",
+  "EquipmentName",
+  "EquipmentDescriptions",
+  "EquipmentActor",
+  "SocksNames_Hand",
+  "SocksNames_Back"
+ ],
+ "column_export_names": [
+  "DataTableIdentifier",
+  "EquipmentName",
+  "EquipmentDescriptions",
+  "EquipmentActor",
+  "SocksNames_Hand",
+  "SocksNames_Back"
+ ],
+ "name_from_export_name(first)": "DataTableIdentifier_11_FB142BF8451E9680A70BBEAA0DD613A8",
+ "json_friendly": {
+  "fill": true,
+  "rows": [],
+  "export": "[]"
+ },
+ "json_mangled": {
+  "fill": true,
+  "rows": [],
+  "export": "[]"
+ },
+ "json_export": {
+  "fill": true,
+  "rows": [],
+  "export": "[]"
+ },
+ "csv_mangled_nobom": {
+  "fill": true,
+  "rows": [
+   "Row_Csv"
+  ],
+  "export": "[\r\n\t{\r\n\t\t\"Name\": \"Row_Csv\",\r\n\t\t\"DataTableIdentifier\": \"SelfTest\",\r\n\t\t\"EquipmentName\": \"Spear_X\",\r\n\t\t\"EquipmentDescriptions\": \"NSLOCTEXT(\\\"DT_NameC_mangled_nobom [E1CC5EF400FC08709919A192764145F6]\\\", \\\"Row_Csv_EquipmentDescriptions\\\", \\\"自检文本\\\")\",\r\n\t\t\"EquipmentActor\": \"None\",\r\n\t\t\"SocksNames_Hand\": \"hand_r\",\r\n\t\t\"SocksNames_Back\": \"spine_01\"\r\n\t}\r\n]"
+ },
+ "csv_mangled_bom": {
+  "fill": true,
+  "rows": [
+   "Row_Csv"
+  ],
+  "export": "[\r\n\t{\r\n\t\t\"Name\": \"Row_Csv\",\r\n\t\t\"DataTableIdentifier\": \"SelfTest\",\r\n\t\t\"EquipmentName\": \"Spear_X\",\r\n\t\t\"EquipmentDescriptions\": \"NSLOCTEXT(\\\"DT_NameC_mangled_bom [B3F05E64BC8DA5305B7161557278690A]\\\", \\\"Row_Csv_EquipmentDescriptions\\\", \\\"自检文本\\\")\",\r\n\t\t\"EquipmentActor\": \"None\",\r\n\t\t\"SocksNames_Hand\": \"hand_r\",\r\n\t\t\"SocksNames_Back\": \"spine_01\"\r\n\t}\r\n]"
+ },
+ "csv_export_nobom": {
+  "fill": true,
+  "rows": [
+   "Row_Csv"
+  ],
+  "export": "[\r\n\t{\r\n\t\t\"Name\": \"Row_Csv\",\r\n\t\t\"DataTableIdentifier\": \"SelfTest\",\r\n\t\t\"EquipmentName\": \"Spear_X\",\r\n\t\t\"EquipmentDescriptions\": \"NSLOCTEXT(\\\"DT_NameC_export_nobom [FF62526E04ED62560A601DB3E97FF8D3]\\\", \\\"Row_Csv_EquipmentDescriptions\\\", \\\"自检文本\\\")\",\r\n\t\t\"EquipmentActor\": \"None\",\r\n\t\t\"SocksNames_Hand\": \"hand_r\",\r\n\t\t\"SocksNames_Back\": \"spine_01\"\r\n\t}\r\n]"
+ },
+ "csv_export_bom": {
+  "fill": true,
+  "rows": [
+   "Row_Csv"
+  ],
+  "export": "[\r\n\t{\r\n\t\t\"Name\": \"Row_Csv\",\r\n\t\t\"DataTableIdentifier\": \"SelfTest\",\r\n\t\t\"EquipmentName\": \"Spear_X\",\r\n\t\t\"EquipmentDescriptions\": \"NSLOCTEXT(\\\"DT_NameC_export_bom [A9A868019ACD91902DCFEDB3298D0F8B]\\\", \\\"Row_Csv_EquipmentDescriptions\\\", \\\"自检文本\\\")\",\r\n\t\t\"EquipmentActor\": \"None\",\r\n\t\t\"SocksNames_Hand\": \"hand_r\",\r\n\t\t\"SocksNames_Back\": \"spine_01\"\r\n\t}\r\n]"
+ },
+ "csv_friendly_nobom": {
+  "fill": true,
+  "rows": [
+   "Row_Csv"
+  ],
+  "export": "[\r\n\t{\r\n\t\t\"Name\": \"Row_Csv\",\r\n\t\t\"DataTableIdentifier\": \"SelfTest\",\r\n\t\t\"EquipmentName\": \"Spear_X\",\r\n\t\t\"EquipmentDescriptions\": \"NSLOCTEXT(\\\"DT_NameC_friendly_nobom [D2121B62327A193A6DA8B64CB632AC44]\\\", \\\"Row_Csv_EquipmentDescriptions\\\", \\\"自检文本\\\")\",\r\n\t\t\"EquipmentActor\": \"None\",\r\n\t\t\"SocksNames_Hand\": \"hand_r\",\r\n\t\t\"SocksNames_Back\": \"spine_01\"\r\n\t}\r\n]"
+ },
+ "csv_friendly_bom": {
+  "fill": true,
+  "rows": [
+   "Row_Csv"
+  ],
+  "export": "[\r\n\t{\r\n\t\t\"Name\": \"Row_Csv\",\r\n\t\t\"DataTableIdentifier\": \"SelfTest\",\r\n\t\t\"EquipmentName\": \"Spear_X\",\r\n\t\t\"EquipmentDescriptions\": \"NSLOCTEXT(\\\"DT_NameC_friendly_bom [667032A1167259B003B1FA2262169546]\\\", \\\"Row_Csv_EquipmentDescriptions\\\", \\\"自检文本\\\")\",\r\n\t\t\"EquipmentActor\": \"None\",\r\n\t\t\"SocksNames_Hand\": \"hand_r\",\r\n\t\t\"SocksNames_Back\": \"spine_01\"\r\n\t}\r\n]"
+ },
+ "json_friendly_saved": {
+  "fill": true,
+  "rows": [],
+  "export": "[]",
+  "saved": true
+ }
+}

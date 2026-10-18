@@ -1,0 +1,23 @@
+[
+  {"Name": "karma.max.base", "Key": "karma.max.base", "Value": 100, "Unit": "点", "Note": "HUD 承负槽初始满值"},
+  {"Name": "karma.max.awakened", "Key": "karma.max.awakened", "Value": 150, "Unit": "点", "Note": "第 2 关解锁承负容器扩容后提升"},
+  {"Name": "karma.gain.light1", "Key": "karma.gain.light1", "Value": 2, "Unit": "点", "Note": "基础平 A 收益压低，抑制无脑轻击攒槽"},
+  {"Name": "karma.gain.light2", "Key": "karma.gain.light2", "Value": 3, "Unit": "点", "Note": "连段递进奖励"},
+  {"Name": "karma.gain.light3", "Key": "karma.gain.light3", "Value": 5, "Unit": "点", "Note": "打满一套三连合计获得 10 点承负"},
+  {"Name": "karma.gain.heavy", "Key": "karma.gain.heavy", "Value": 8, "Unit": "点", "Note": "奖励看准时机破防"},
+  {"Name": "karma.gain.parry", "Key": "karma.gain.parry", "Value": 18, "Unit": "点", "Note": "★核心来源：成功招架 4–5 次配合反打即可满槽"},
+  {"Name": "karma.window.counter", "Key": "karma.window.counter", "Value": 1, "Unit": "秒", "Note": "修正原 2.0s 过慢问题，强化“闪避瞬斩”紧凑感"},
+  {"Name": "karma.gain.counter", "Key": "karma.gain.counter", "Value": 12, "Unit": "点", "Note": "仅在 K-08 窗口内命中生效"},
+  {"Name": "karma.gain.execute", "Key": "karma.gain.execute", "Value": 15, "Unit": "点", "Note": "鼓励玩家抓住残血/破防窗口积极处决"},
+  {"Name": "karma.mult.elemental", "Key": "karma.mult.elemental", "Value": 2, "Unit": "倍", "Note": "配合第 2 关被动「承负感知」命中弱点时翻倍"},
+  {"Name": "karma.gain.ranged", "Key": "karma.gain.ranged", "Value": 1, "Unit": "点", "Note": "★刻意极低：且不享受招架/闪避加成，防止远程刷大招"},
+  {"Name": "karma.cost.enhance", "Key": "karma.cost.enhance", "Value": 25, "Unit": "点", "Note": "满槽可释放 4 次强化招式"},
+  {"Name": "karma.buff.enhance_dmg", "Key": "karma.buff.enhance_dmg", "Value": 35, "Unit": "%", "Note": "强化当次长枪重击或裂隙突刺的伤害"},
+  {"Name": "karma.cost.finisher", "Key": "karma.cost.finisher", "Value": 100, "Unit": "点", "Note": "公式联动 K-01，释放时清空整条承负槽"},
+  {"Name": "karma.mult.finisher", "Key": "karma.mult.finisher", "Value": 2, "Unit": "倍", "Note": "对高维污染畸变体造成双倍净化伤害"},
+  {"Name": "karma.decay.delay", "Key": "karma.decay.delay", "Value": 8, "Unit": "秒", "Note": "修正原“脱战即刻清零”导致小波次攒不满槽的问题"},
+  {"Name": "karma.decay.rate", "Key": "karma.decay.rate", "Value": 5, "Unit": "点/秒", "Note": "Boss 战转阶段期间暂停衰减"},
+  {"Name": "karma.hud.t1", "Key": "karma.hud.t1", "Value": 30, "Unit": "点", "Note": "满 25 点即可激活「承负强化」提示"},
+  {"Name": "karma.hud.t2", "Key": "karma.hud.t2", "Value": 65, "Unit": "点", "Note": "中度过载状态视觉提示"},
+  {"Name": "karma.hud.t3", "Key": "karma.hud.t3", "Value": 100, "Unit": "点", "Note": "公式联动 K-01，满槽时高亮提示可按 F 释放终结技"}
+]
