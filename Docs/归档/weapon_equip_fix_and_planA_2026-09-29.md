@@ -1,5 +1,9 @@
 # 武器装配 / 卸下：修坑 + 方案 A 实施清单
 
+> **📦 已归档（2026-10-19）**：本文写于 2026-09-29，是装备链路改造的历史决策记录，**其中的操作步骤已全部执行完毕，不要再照着做**。当前资产事实请看 [`../战斗系统交接/战斗系统交接文档.md`](../战斗系统交接/战斗系统交接文档.md)（v2）；本文作为"当时为什么这么改"的取证保留，不改原文。
+> **失效的具体点**：目标路径 `/Game/Combo_Demo/Component/AC_Combat` 已变为 `/Game/Combo_Demo/BP/Components/AC_Combat`；"本工程没有 git" 已被 2026-10-14 的 git 初始化推翻；文中 `Play Animation` 病灶与 `AttackMontages` 相关描述均已被后续重构取代。
+> **归档依据**：[`../审查/04-文档勘误与合并建议.md`](../审查/04-文档勘误与合并建议.md) §2.2（4 条需改）与 §4.3（归档建议）。
+
 - 目标资产：`/Game/Combo_Demo/Component/AC_Combat`（ActorComponent，挂在 `/Game/Blueprints/SandboxCharacter_CMC` 上，组件 Tag = `Combat`）
 - 动画蓝图：`/Game/Blueprints/SandboxCharacter_CMC_ABP`（AnimGraph 里那个 Slot 节点 = `DefaultSlot`）
 - 引擎：UE 5.7.4

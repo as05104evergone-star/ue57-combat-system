@@ -1,5 +1,6 @@
-# BP_NPC 受击反馈 / 血量扣除 / 死亡反馈 —— 实现手册（W6）
+# BP_NPC 受击反馈 / 血量扣除 / 死亡反馈 —— 实现手册（v2 · W6）
 
+> 文档版本：**v3**　最后更新：**2026-10-19**（v3：Step 9–13 全部落地并 PIE 实测通过；Step 13 绑定点与 Delay 写法按实际实现更正）
 > 工程：`Animation_Sample`（UE 5.7.4 + GASCombatBridge v1.1.0）
 > 目标：把 NPC 从「空壳」做到「打得死、会被打」
 > 用法：从上往下按顺序做。每步固定四段——**【操作】怎么做 / 【为什么】** 为什么要这么处理 / **【注释参考】** 可以直接粘到蓝图注释框的话 / **【验收】** 怎么算做完。
@@ -50,7 +51,7 @@
 | 资产 | 类型 | 建议路径 | 用途 |
 |---|---|---|---|
 | `ABP_EnemyBase` | 动画蓝图 | `Content/Combo_Demo/Animation/` | Spear 骨架的敌人 ABP，里面有 Slot 节点（蒙太奇靠它播） |
-| `AM_Hit_F` `AM_Hit_B` `AM_Hit_L` `AM_Hit_R` | AnimMontage | `Content/Combo_Demo/Animation/Hit/` | 小硬直四方向 |
+| `AM_Hit_F` `AM_Hit_B` `AM_Hit_L` `AM_Hit_R` | AnimMontage | `Content/Combo_Demo/Animation/Montage/`（**v2 更正**：实际就放在 Montage 目录，旧的 `Animation/Hit/` 不存在） | 小硬直四方向 |
 | `AM_Hit_Large_F` | AnimMontage | 同上 | 大硬直（先只做前方） |
 | `AM_Hit_Death` | AnimMontage | 同上 | 死亡 |
 | `GE_Damage` | GameplayEffect | `Content/Combo_Demo/BP/GAS/` | 伤害效果（Instant，SetByCaller `Data.Damage`） |
@@ -59,45 +60,68 @@
 ### 0.4 前置检查（先确认这 3 件事）
 
 - [ ] **编辑器能开 GAS 调试面板**：菜单 `窗口 → 工具 → GAS 战斗调试`。没有这个页签说明插件没启用。
-- [ ] **数值管道通不通**。你要的「血量/伤害/硬直时长/阈值都从表里取」依赖两样东西：`DT_Enemy`/`DT_Combat` 已导入成 DataTable、`BPFL_GameParams.GetCombatParam` / `GetEnemyParam` 已实现。
-      **实测结论（2026-10-18 读资产）**：`S_GameParam` 结构体里**一个字段都没有**；`BPFL_GameParams` 里只有一个**空的「新函数」**（没返回值、没实现）；Content 里只有 `DT_WeaponDetails`，**没有 DT_Enemy / DT_Combat**。
-      → 所以这条链**现在是不通的**。两个选择：
-      1. **补 Step 0**（约 40 分钟，一次性投入，之后所有数值都能从表调）；
-      2. **先临时硬编码**，把取数节点（`GetCombatParam` / `GetEnemyParam`）的位置直接塞字面量（附录 A 给了全部数值），做完 Step 0 后再替换 —— 替换点只有 5 处，不痛。
+- [x] **数值管道已打通（2026-10-19 复核）**。原 v1 写的「实测结论（2026-10-18）：`S_GameParam` 一个字段都没有 / `BPFL_GameParams` 是空函数 / 没有 `DT_Enemy`、`DT_Combat`」**已全部不成立**——那是 2026-10-18 21:51 的快照，同一提交（23:12）内 `AC_Combat` 就接上表了：
+      - `S_GameParam` 已有 4 字段（`Key` / `Value` / `Unit` / `Note`）；
+      - `BPFL_GameParams` 已实现 `GetCombatParam` / `GetEnemyParam`（按表拆成两个函数，原因见 0-C 与附录 C-13）；
+      - `Content/Combo_Demo/BP/DataTables/` 已有 **10 张** `DT_*`（含 `DT_Enemy`、`DT_Combat`）；
+      - `AC_Combat.LightAttack` 已实际从 `DT_Combat` 取 `combat.dmg.lightN` 写入 `CurrentAttackDamage`。
+      → **所以直接按「从表取数」做，不要再走临时硬编码；Step 0 已标为已完成。** 现状细节见 [`战斗系统交接文档.md`](战斗系统交接文档.md) §6.2 与 [`Docs/审查/03-数据管线核对.md`](../审查/03-数据管线核对.md)。
 - [ ] **Spear 动画在不在**：`Content/Spear/Animation/Sequence/08_Hit/`、`01_Idle/`。
 
 ---
 
 ## 1. 步骤总表（照这个顺序做，做完一格打勾）
 
+### 当前进度（2026-10-19 按资产核对）
+
+| 阶段 | 步骤 | 状态 | 证据 |
+|---|---|---|---|
+| — | Step 0 打通数值 | ✅ **已完成** | `S_GameParam` 4 字段、`BPFL_GameParams` 两函数、10 张 `DT_*`、`AC_Combat` 已从 `DT_Combat` 取伤害 |
+| M1 | Step 1 装配 `BP_MasterNPC` | ✅ 已落地 | 20 节点，已挂 GAS 战斗桥接组件（2026-10-18 21:34） |
+| M1 | Step 2 新建 `ABP_EnemyBase` | ✅ 已落地 | `Content/Combo_Demo/Animation/ABP/ABP_EnemyBase`（10-18 21:16） |
+| M1 | Step 3 建 6 个受击 Montage | ✅ 已落地 | `Animation/Montage/` 下 6 个 `AM_Hit_*`（10-18 21:22/21:23）；**已于 Step 9–13 接到 NPC 上** |
+| M2 | Step 4 挂桥接组件 + 属性集 | ✅ 已落地 | `BP_MasterNPC` 组件列表有 GAS 战斗桥接组件 |
+| M2 | Step 5 战斗就绪灌 `MaxHealth`/`Health` | ✅ 已落地 | `BP_MasterNPC` 已绑 `OnCombatReady` |
+| M3 | Step 6 建 `GE_Damage` | ✅ 已落地 | `BP/GAS/GE_Damage`（10-18 22:21） |
+| M3 | Step 7 `AC_Combat` 命中→结算 | ✅ 已核实 | `AC_Combat.PlayWeaponTrace` 命中后调 `ApplyDamageToTarget`（Source=`OwningCharacter`、Target=命中 Actor、GE=`GE_Damage`、Level=1，2026-10-19 T3D 复核）；PIE 实测一刀掉一次血 |
+| M4 | Step 8 建 `GE_HitStun` | ✅ 已落地 | `BP/GAS/GE_HitStun`（10-19 13:46）：Duration=`SetByCaller Data.Duration`，授予 `State.Stunned` |
+| M4 | Step 9 `AC_NPC.ApplyHitReaction` | ✅ 已落地 | `AC_NPC` 现 7 变量 / 3 函数；`ApplyHitReaction` 34 节点（2026-10-19 T3D 复核）。PIE 实测挨打有动作 + `State.Stunned` 出现 |
+| M4 | Step 10 绑「受到伤害时」转发 | ✅ 已落地 | `BP_MasterNPC` EventGraph 27 节点：`受到伤害时 → IsValid(DamageInstigator) → AC_NPC.ApplyHitReaction`（真分支用发起者位置，假分支兜底） |
+| M4 | Step 11 方向判定 | ✅ 已落地 | `AC_NPC.SelectHitMontage`（30 节点）：`Inverse Transform Location` 取局部坐标 → 四象限 → `MontageSmall[F,B,L,R]`。PIE 实测四个方向分别播对 |
+| M4 | Step 12 阈值分档 | ✅ 已落地 | `ApplyHitReaction` 内 `DamageAmount >= 24 OR bFromParry → bLarge`；时长三分支（小 0.35 / 大 1.8 / 招架 1.8） |
+| M5 | Step 13 死亡流程 | ✅ 已落地 | `AC_NPC.HandleDeath`（18 节点）+ `BP_MasterNPC` 绑 `AC_GASCombat` 的 `死亡时`；`AM_Hit_Death` 取消 AutoBlendOut 定格末帧 |
+| M5 | Step 14 收尾 | ⏳ 只剩清理 | 调试打印（`PrintString` / `DrawDebug`）仍在，见交接文档 P2 |
+
+> 结论（2026-10-19 更新）：**Step 0–13 全部落地，受击→硬直→方向→大小档→死亡整条链已 PIE 实测跑通**（用户验收）。剩 Step 14 的清理项与 P1 功能项（输入缓冲只写不读等），见 [`战斗系统交接文档.md`](战斗系统交接文档.md) §7。
+
 ### M1 · 让 NPC 站在那（表现基线，约 1.3h）
 
-- [ ] **Step 1** 装配 `BP_MasterNPC`（Mesh + ABP + 对齐胶囊）｜验收：PIE 里 NPC 站着播 Idle，脚不穿地
-- [ ] **Step 2** 新建 `ABP_EnemyBase`（Spear 骨架）｜验收：Slot + Idle 连上，编译通过
-- [ ] **Step 3** 建 6 个受击 Montage｜验收：每个 Montage 的 Slot 名 = `DefaultGroup.DefaultSlot`
+- [x] **Step 1** 装配 `BP_MasterNPC`（Mesh + ABP + 对齐胶囊）｜验收：PIE 里 NPC 站着播 Idle，脚不穿地
+- [x] **Step 2** 新建 `ABP_EnemyBase`（Spear 骨架）｜验收：Slot + Idle 连上，编译通过
+- [x] **Step 3** 建 6 个受击 Montage｜验收：每个 Montage 的 Slot 名 = `DefaultSlot`（引擎只有 `AnimNode_Slot.SlotName` 一个字段，`DefaultGroup.DefaultSlot` 是旧写法的误导）
 
 ### M2 · 让 NPC 有血（约 0.8h）
 
-- [ ] **Step 4** 挂 `GAS战斗桥接组件` + 挂「通用战斗属性集」｜验收：调试面板显示「属性 11 项」
-- [ ] **Step 5** 战斗就绪时从 `DT_Enemy` 灌 `MaxHealth`/`Health`｜验收：调试面板 50 / 50
+- [x] **Step 4** 挂 `GAS战斗桥接组件` + 挂「通用战斗属性集」｜验收：调试面板显示「属性 11 项」
+- [x] **Step 5** 战斗就绪时从 `DT_Enemy` 灌 `MaxHealth`/`Health`｜验收：调试面板 50 / 50
 
 ### M3 · 让玩家的刀砍得到（约 1.3h，W6 命门）
 
-- [ ] **Step 6** 建 `GE_Damage`｜验收：对它施加能掉 25 血
-- [ ] **Step 7** `AC_Combat` 命中处接「去重 + 对目标造成伤害」｜验收：连砍三下 50→38→24→4，且一刀只掉一次
+- [x] **Step 6** 建 `GE_Damage`｜验收：对它施加能掉 25 血
+- [x] **Step 7** `AC_Combat` 命中处接「去重 + 对目标造成伤害」｜验收：连砍三下 50→38→24→4，且一刀只掉一次
 
 ### M4 · 让 NPC 会硬直（约 2h）
 
-- [ ] **Step 8** 建 `GE_HitStun`｜验收：手工施加 0.35s 后 `State.Stunned` 自动消失
-- [ ] **Step 9** `AC_NPC` 加 `ApplyHitReaction`｜验收：挨打有动作 + 标签出现
-- [ ] **Step 10** `BP_MasterNPC` 绑「受到伤害时」转发进来｜验收：整条链打通
-- [ ] **Step 11** 方向判定（前/后/左/右）｜验收：四个方向分别播对
-- [ ] **Step 12** 阈值分档（大/小硬直）｜验收：左键小硬直、右键大硬直
+- [x] **Step 8** 建 `GE_HitStun`｜验收：手工施加 0.35s 后 `State.Stunned` 自动消失
+- [x] **Step 9** `AC_NPC` 加 `ApplyHitReaction`｜验收：挨打有动作 + 标签出现
+- [x] **Step 10** `BP_MasterNPC` 绑「受到伤害时」转发进来｜验收：整条链打通
+- [x] **Step 11** 方向判定（前/后/左/右）｜验收：四个方向分别播对
+- [x] **Step 12** 阈值分档（大/小硬直）｜验收：左键小硬直、右键大硬直
 
 ### M5 · 让 NPC 会死（约 1h）
 
-- [ ] **Step 13** 死亡流程｜验收：血归零播死亡、不再挡路、不再响应攻击
-- [ ] **Step 14** 收尾（守卫 + 调试残留 + 全量验收清单）｜验收：无报错、无残留
+- [x] **Step 13** 死亡流程｜验收：血归零播死亡、不再挡路、不再响应攻击
+- [ ] **Step 14** 收尾（守卫 + 调试残留 + 全量验收清单）｜验收：无报错、无残留（**当前唯一剩余项**）
 
 **合计约 6.5 小时。**
 
@@ -105,9 +129,12 @@
 
 ## 2. 分步详解
 
-## Step 0（可选）· 把数值来源打通
+## Step 0 ✅ 已完成 · 把数值来源打通（2026-10-18 已落地）
 
-**什么时候做**：想「改表就生效」就现在做；想先跑通逻辑就跳过，用附录 A 的字面值，最后回头替换。
+> **v2 状态：已完成。** `S_GameParam` 4 字段、`BPFL_GameParams.GetCombatParam`/`GetEnemyParam`、10 张 `DT_*`、`AC_Combat` 接表取伤害都已在资产里。**直接跳到 Step 1。**
+> 以下内容保留作「如果以后要重建数据管道该怎么做」的记录，也用于核对现有实现是否符合规范。
+
+**什么时候做**：v1 时写的「想改表就生效就现在做」。现已完成。
 
 **动手顺序：0-A（补结构体字段）→ 0-B（导入两张表）→ 0-C（写取数函数）→ 0-D。** 0-C 必须在 0-B 之后，因为函数里要拖 DataTable 资产。
 
@@ -711,38 +738,45 @@ bLarge = (DamageAmount >= Threshold)  OR  bFromParry
 ## Step 13 · 死亡流程
 
 ### 【操作】
-在 `AC_NPC` 里绑 **`死亡时`**（组件事件，参数 `Killer` / `DamageCauser`），或让 `BP_MasterNPC` 转发进来（推荐直接绑在 `AC_NPC` 里，逻辑集中）：
+死亡事件**不在 `AC_NPC` 里绑**——`AC_NPC` 的父类是 `ActorComponent`（普通组件），`死亡时` 是 `AC_GASCombat`（GAS 桥接组件）的委托；普通组件之间不能互相绑事件，必须由同时持有两者的 `BP_MasterNPC` 中转（2026-10-19 实测后更正，v2 写法有误）。
+
+**分两处做：**
+
+**① `AC_NPC`：新建普通函数 `HandleDeath()`**（不要做成事件，也不放延迟节点）：
 
 ```
-[死亡时]
+[HandleDeath 入口]
    │
-   ├─ [Branch: bDead] ──(true)──► Return
+   ├─ [Branch: bDead] ──(true)──► 直接结束
    ▼
 [Set bDead = true]
-   │
+   ▼
+[Get Owner] → [Cast To Character] → [Cast To BP_MasterNPC]     ← 取到挂组件的那个 NPC
    ▼
 [取消所有技能]  目标 = Owner            ← 一刀切，不挑技能
-   │
    ▼
 [添加游离标签]  目标 = Owner  标签 = State.Dead    ← 给未来 AI / 其他系统查
-   │
    ▼
 [获取 Character Movement] → [禁用移动]（Disable Movement）      ← 停住
-   │
    ▼
 [获取胶囊组件] → [设置碰撞启用] = NoCollision                   ← 关掉隐形路障
-   │
    ▼
 [播放动画蒙太奇]  Target = Owner  蒙太奇 = MontageDeath          ← AM_Hit_Death（3.0s）
-   │
    ▼
-[延迟] 时长 = MontageDeath 的播放长度（取不到就先填 3.0）
-   │
-   ▼
-（二选一）
-  A. 什么都不做 → 尸体保留
-  B. [销毁Actor]（或以后换 Ragdoll）
+结束（保留尸体：不 Delay、不 DestroyActor）
 ```
+
+> 实际资产（2026-10-19 T3D 复核）：`HandleDeath` 18 节点，就是上面这条链。
+
+**② `BP_MasterNPC` 的 EventGraph：把死亡事件转发进来**
+
+从组件面板把 `AC_GASCombat` 拖进图 → 从它拖出引脚搜 **`死亡时`**（或在细节面板的「事件」区点 `+` 绑 `OnDeath`）→ 新事件里调 `[AC_NPC] → [HandleDeath]`。
+
+> 和 Step 10 的「受到伤害时」是同一个套路：**委托都绑在 `BP_MasterNPC` 上，再调 `AC_NPC` 的函数**。
+
+**两个注意**：
+- **不要写 `Delay`**：函数里放不了延迟节点（见【为什么】）。想延迟销毁就把 `Delay 3.0 → DestroyActor` 放到 `BP_MasterNPC` 的事件图里。
+- **`AM_Hit_Death` 细节面板 → Blend Option → 取消勾选 `Enable Auto Blend Out`**，否则播完会站起来回到 Idle。
 
 ### 【为什么】
 - **只信「死亡时」事件**：属性集内部有个 `bDeathBroadcast` 标记，**只在血从 >0 变 0 那一次广播一次**，而且被治疗拉回来之后还能再广播。你在扣血处自己判 `Health <= 0` 会重复触发，以后加复活还得改两处。
@@ -750,6 +784,9 @@ bLarge = (DamageAmount >= Threshold)  OR  bFromParry
 - **`bDead` 守卫**：`ApplyHitReaction` 和死亡事件可能同帧到达，拦一次最省心。
 - **推荐先「保留尸体」**：尸体消失会让人怀疑「是不是没死」；Ragdoll 涉及物理资产和碰撞，等 NPC 有模型了再做。
 - **`取消所有技能`** 现在 NPC 没技能，是空操作，但保留它——W7 敌人有技能后，死亡必须掐断，不然尸体会继续放技能。
+- **组件不能绑另一个组件的事件**：`AC_NPC` / `AC_GASCombat` 都只是组件，委托的 Add 节点只出现在「拥有该委托的类自己的图」里；跨组件只能由同时持有两者的 `BP_MasterNPC` 中转。实测表现是「在 `AC_NPC` 里根本搜不到 `死亡时` 事件」（v2 的"推荐直接绑在 `AC_NPC` 里"是错的）。
+- **函数里不能放 `Delay`**：延迟节点（Latent）只能出现在事件图里，引擎原文 `CallFunctionHandler.cpp` 报错："@@ contains a latent call, which cannot exist outside of the event graph"。所以选「保留尸体」时 Delay 后面没有事可做，**直接删掉**；要延迟销毁就放到 `BP_MasterNPC` 的事件图。
+- **尸体站起来不是 bug，是 AutoBlendOut**：`AnimMontage.bEnableAutoBlendOut` 默认 `true`，含义是"播完自动 blend out 回 Idle"，尸体于是站起；改成 `false` 后蒙太奇停在末帧才是"躺地上"。代价：蒙太奇不会自己结束（`On Blend Out Started` / `On Montage Ended` 不再触发），以后做 Ragdoll/复活前要手动 `Stop`。
 
 ### 【注释参考】
 > 死亡只绑「死亡时」事件，属性集保证只在血从有到无那一次广播，不要自己判血量
@@ -757,7 +794,7 @@ bLarge = (DamageAmount >= Threshold)  OR  bFromParry
 > 先保留尸体，Ragdoll 等有模型再做
 
 ### 【验收】
-打到 0 血 → 播死亡动作 → 玩家从尸体上走过去**不被挡** → 继续砍它**没有任何反应、无报错** → 调试面板 `生命 0 / 50`、标签有 `State.Dead`。
+打到 0 血 → 播死亡动作 → **尸体保持躺地（不站起）** → 玩家从尸体上走过去**不被挡** → 继续砍它**没有任何反应、无报错** → 调试面板 `生命 0 / 50`、标签有 `State.Dead`。（2026-10-19 已按此验收通过。）
 
 ---
 
@@ -785,7 +822,7 @@ bLarge = (DamageAmount >= Threshold)  OR  bFromParry
 | 轻击三段伤害 | `DT_Combat` / `combat.dmg.light1` `light2` `light3` | **12 / 14 / 20** |
 | 重击伤害 | `DT_Combat` / `combat.dmg.heavy` | **28** |
 | 小硬直时长 | `DT_Combat` / `combat.enemy.hitstun` | **0.35 s** |
-| 大硬直时长 | `DT_Combat` / `combat.enemy.hitstun_large`（新增） | **1.8 s**（暂用 `combat.enemy.parry_stun`） |
+| 大硬直时长 | `DT_Combat` / `combat.enemy.hitstun_large`（新增） | **1.8 s**（`AC_NPC` 已直接取该键，不再借 `parry_stun`） |
 | 招架硬直时长 | `DT_Combat` / `combat.enemy.parry_stun` | **1.8 s** |
 | 杀生之影招架硬直 | `DT_Enemy` / `enemy.shadow.parry_stun` | **1.5 s** |
 | 大硬直阈值 | `DT_Combat` / `combat.enemy.hitstun_large_threshold`（新增 C-23） | **24** |
@@ -808,7 +845,7 @@ bLarge = (DamageAmount >= Threshold)  OR  bFromParry
 | 事件 | `受到伤害时`、`死亡时`（在桥接组件的事件区） |
 | 调试 | `打印战斗信息`、`获取战斗信息文本`、菜单 `窗口 → 工具 → GAS 战斗调试` |
 
-## 附录 C · 坑清单（这个项目一定会撞的 13 条）
+## 附录 C · 坑清单（这个项目一定会撞的 15 条）
 
 1. **一次挥击连续扣血** → 去重数组（Step 7-3/7-4）。最常见。
 2. **伤害 GE 的标签不能拿来判硬直**：Instant GE 的 Granted Tags 不驻留，播完就没了。硬直必须用独立的 Duration GE。
@@ -823,8 +860,12 @@ bLarge = (DamageAmount >= Threshold)  OR  bFromParry
 11. **死亡不关胶囊碰撞** → 尸体变成隐形路障，表现像「卡穿模」。
 12. **死亡后在别处再判一次 `Health <= 0`** → 死亡流程放两遍、复活功能以后要改两处。只信「死亡时」事件。
 13. **Get Data Table Row 的 Data Table 引脚接了通用 DataTable 变量** → 节点红字 ERROR!，下游 Break 结构体 放不下来（因为行结构没解析出来）。它只能接**具体的 DataTable 资产（硬引用）**，取数函数必须按表拆开写。
+14. **在 `AC_NPC`（普通组件）里搜不到 `死亡时` 事件** → 委托在 `AC_GASCombat` 上；组件不能绑另一个组件的事件，必须由 `BP_MasterNPC` 中转调 `AC_NPC.HandleDeath`。同理 `受到伤害时`。
+15. **死亡蒙太奇播完尸体站起来** → `AnimMontage` 默认 `bEnableAutoBlendOut = true`（播完 blend out 回 Idle）；死亡蒙太奇要取消勾选 `Enable Auto Blend Out`，才会定格末帧。
 
 ## 附录 D · 全量验收清单
+
+> **v2 状态（2026-10-19）：当前全部不满足** —— 只做到 Step 6 / Step 7 的一半（伤害值已取到、结算收尾未核实），NPC 还打不死。本清单是 **W6 的验收目标**，不是"现状描述"。按 v2 §1 进度表逐条推进。
 
 - [ ] NPC 血量从表来，改表 → PIE 生效（不用改蓝图）
 - [ ] 一次挥击只掉一次血（去重生效）
@@ -861,3 +902,19 @@ bLarge = (DamageAmount >= Threshold)  OR  bFromParry
 - Montage 的 Slot 名与时长
 
 **不需要编辑器开着，也不需要截图**——只要资产**保存过**。
+
+---
+
+## 附：做完之后要回写哪里（v2 约定）
+
+本手册是**实施手册**，不是资产事实源。每完成一个里程碑，请回写：
+
+1. **`Docs/战斗系统交接/战斗系统交接文档.md`（v2）**：
+   - Step 1–6 的落地细节 → §2 资产清单（`AC_NPC` / `BP_MasterNPC` / `ABP_EnemyBase` / `GE_*` 的状态）
+   - Step 7 的结算链路 → §4.3 命中检测
+   - Step 8–13 → §6.2「还没做的」表逐项改成 ✅
+2. **`Docs/README.md`**：若新增了文档或目录，更新文档地图。
+3. **git 提交说明**里写「文档同步：交接文档 v2 §x / 手册 Step y」。
+
+> 本手册的勘误依据与证据见 [`Docs/审查/02-NPC受击闭环核对.md`](../审查/02-NPC受击闭环核对.md)，文档级勘误见 [`Docs/审查/04-文档勘误与合并建议.md`](../审查/04-文档勘误与合并建议.md)。
+> 当前进度汇总：见 [`战斗系统交接文档.md`](战斗系统交接文档.md) §0 与 §6.2。
