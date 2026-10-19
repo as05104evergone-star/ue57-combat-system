@@ -33,7 +33,7 @@ MetaHuman 等，约 5.1 GB），它们有各自的授权，不宜由我转发放
 不用 GAS，不用 C++，纯蓝图。理由是先把动画状态机、蒙太奇、动画通知这三件事的
 边界摸清楚，再考虑往上叠框架。
 
-到 2026-10-14 的进度：玩家侧的战斗闭环已经跑通，NPC 侧还是空壳。
+到 2026-10-19 的进度：**玩家侧连招闭环 + NPC 受击 / 血量 / 硬直 / 死亡闭环都已跑通**（招架 / 闪避 / 处决还没做）。
 
 ---
 
@@ -61,11 +61,15 @@ MetaHuman 等，约 5.1 GB），它们有各自的授权，不宜由我转发放
 | `Weapon Trace On` | `False` | 拖尾检测开关 |
 | `CurrentBufferedInput` | `NotAttack` | 输入缓冲（见「已知问题」） |
 
-### 2. 连招系统（核心）
+### 2. 连招系统（核心，2026-10-16 已重构成轻 / 重两套数组）
 
 **连招就是取数组的第 `ComboIndex` 项播放，播完把索引 +1，到头归零。**
 
-`AttackMontages` 数组实测内容：
+> ⚠️ 下表是 2026-10-16 重构前的旧数据（那时是单个 `AttackMontages`、8 段方案）。
+> 现在已拆成 `LightAttackMontages`（轻击 3 段）+ `HeavyAttackMontages`（重击 2 段），
+> 窗口时序以 `Docs/战斗系统交接/战斗系统交接文档.md` §3 为准。
+
+`AttackMontages` 数组实测内容（旧数据）：
 
 | 索引 | Montage | 输入禁用窗口 | 拖尾窗口 | 时长 |
 |---|---|---|---|---|
@@ -154,6 +158,31 @@ BoxTraceSingle(
 `Tick` 里把角色朝向按 `RInterpTo` 插值向 `CachedInputRotation`，速度 `13.0`。
 出手瞬间锁定方向，避免攻击过程中被鼠标带着转圈。
 
+### 7. NPC 受击 / 血量 / 硬直 / 死亡（2026-10-19）
+
+敌人是 `BP_MasterNPC`（Character）+ 两个组件：`AC_GASCombat`（GAS 桥接，负责血量与伤害广播）、
+`AC_NPC`（我自己的受击逻辑）。链路是：
+
+```
+AC_Combat.PlayWeaponTrace 命中
+  → GE_Damage（Instant，SetByCaller 伤害）
+  → 属性集扣血并广播「受到伤害时」
+  → BP_MasterNPC 收到事件，转发给 AC_NPC.ApplyHitReaction
+      → 伤害 ≥ 阈值(24) 或来自招架 ⇒ 大硬直
+      → 查 DT_Combat 取时长（0.35 / 1.8 s），用 GE_HitStun（SetByCaller Data.Duration）施加
+      → SelectHitMontage 按攻击者相对 NPC 的局部坐标选方向蒙太奇（前 / 后 / 左 / 右）
+      → PlayAnimMontage
+  → 血归零 ⇒ 属性集广播「死亡时」→ BP_MasterNPC 转发 AC_NPC.HandleDeath
+      → State.Dead 标签 → 禁用移动 → 胶囊 NoCollision → 播 AM_Hit_Death
+```
+
+几个决定的理由：
+
+- **硬直时长不写死在蓝图里**：一个 `GE_HitStun` + SetByCaller 就能表达 0.35 / 1.8 两档，不用建三个效果资产。
+- **方向判定用局部坐标，不用角度扇区**：局部 +X 是前方、+Y 是右方，四个象限直接映射数组下标，不用处理 359° / 1° 跨界。
+- **大硬直只有前方一个蒙太奇**（`MontageLarge` 只有 1 项），所以取值前用 `Min(Index, Length-1)` 兜底；越界会取到 `None`，`PlayAnimMontage(None)` **静默不播**，最难查。
+- 死亡后**保留尸体**：不销毁，但关掉胶囊碰撞，避免尸体变成隐形路障。
+- `AM_Hit_Death` 要关掉 **`Enable Auto Blend Out`**，否则蒙太奇播完自动 blend 回 Idle，尸体站起来。
 ---
 
 ## 仓库结构
@@ -162,12 +191,16 @@ BoxTraceSingle(
 Content/
   Combo_Demo/                     ← 全部由我创作
     BP/
-      Components/AC_Combat        战斗组件本体
+      Components/AC_Combat        战斗组件本体（玩家）
+      Components/AC_NPC           NPC 受击 / 硬直 / 死亡逻辑
+      Components/AC_GASCombat     GAS 桥接组件（血量 / 伤害广播，插件提供）
       Actors/BP_MasterWeapon      武器 Actor（实现 BPI_WeaponActor）
+      Actors/BP_MasterNPC         敌人（挂 AC_GASCombat + AC_NPC）
+      GAS/GE_HitStun              硬直效果（SetByCaller 时长 + State.Stunned）
       DataTables/DT_WeaponDetails 武器配置表
       Structures/ Enums/ Interfaces/
     Animation/
-      Montage/                    8 个攻击 + 4 个装备蒙太奇
+      Montage/                    攻击 / 装备 / 受击（AM_Hit_F/B/L/R/Large_F/Death）蒙太奇
       Notifies/                   3 个动画通知
       Retaegeted/                 重定向后的动画序列
   Levels/
@@ -175,7 +208,7 @@ Content/
     NPCLevel.umap                 预留的 NPC 关卡
 Docs/
   战斗系统交接/战斗系统交接文档.md   完整交接文档（含待办清单与验证步骤）
-  weapon_equip_fix_and_planA.md    Play Animation 杀死 AnimBP 的排查记录
+  归档/weapon_equip_fix_and_planA_2026-09-29.md   Play Animation 杀死 AnimBP 的排查记录（已归档）
 Scripts/                          UE Python 远程执行与探测脚本
 Plugins/KBaseUE/                  UE 5.7 引擎语义知识库（自用工具）
 ```
@@ -240,10 +273,10 @@ UE 里接口函数实现成**事件（菱形）还是函数图**，取决于签�
 
 | 级别 | 问题 |
 |---|---|
-| 🔴 P0 | **`AttackMontages` 顺序疑似插错位**。现在是 `01_01 → 02_01 → 03_02 → 03_04 → 02_04`，按命名规律应该是 `01_01 → 02_01 → 02_04 → 03_02 → 03_04`。数组顺序 = 播放顺序，直接影响手感 |
-| 🔴 P0 | 有 3 个蒙太奇既不在数组里、也没有拖尾通知：`AS_Combo02_02`、`AS_Combo02_03`、`AS_Combo03_01` |
+| ✅ 已作废 | ~~`AttackMontages` 顺序错位~~ → 2026-10-16 已重构为「轻击 3 段 + 重击 2 段」两套数组（`LightAttackMontages` / `HeavyAttackMontages`），旧的单数组结论不再适用 |
+| 🟡 P2 | 4 个遗留 `AS_Combo*` 蒙太奇未清理（`AS_Combo02_01` / `02_03` / `02_04` / `03_04`），已不再被引用 |
 | 🟠 P1 | **`CurrentBufferedInput` 只写不读**——输入缓冲实际未生效，被写入后没有任何地方消费它 |
-| 🟠 P1 | NPC 侧完全空白：`AC_NPC` 与 `BP_MasterNPC` 是空壳，受击、血量、AI、死亡都没有 |
+| ✅ 已完成 | ~~NPC 侧完全空白~~ → **2026-10-19 已打通受击 / 血量 / 硬直 / 死亡**；剩下招架 / 闪避 / 处决（W6 后半） |
 | 🟡 P2 | `LastTraceLocation` 是死变量（只读不写） |
 | 🟡 P2 | `AM_Equip_Spear` / `AM_Unequip_Spear` 全工程零引用 |
 | 🔵 P3 | 连招窗口固定 2.0s，而最长的蒙太奇是 2.92s——数值待实机调 |
