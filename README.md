@@ -132,7 +132,7 @@ if ComboIndex >= Array_Length(AttackMontages) → ComboIndex = 0
 
 > 这里踩过一个坑：`Play Animation` 节点会**杀掉 AnimBP**，导致装备动作播完后角色
 > 卡在静态姿势。改用 `Play Montage` 并把后续逻辑挂到 `OnNotifyBegin` /
-> `OnCompleted` 委托上才解决。详细复盘见 `Docs/weapon_equip_fix_and_planA.md`。
+> `OnCompleted` 委托上才解决。详细复盘见 `Docs/归档/weapon_equip_fix_and_planA_2026-09-29.md`。
 
 ### 5. 武器拖尾检测
 
@@ -208,6 +208,8 @@ Content/
     NPCLevel.umap                 预留的 NPC 关卡
 Docs/
   战斗系统交接/战斗系统交接文档.md   完整交接文档（含待办清单与验证步骤）
+  战斗系统交接/BP_NPC受击与血量死亡实现手册(已完成).md   受击 / 硬直 / 死亡实施手册（Step 0–14）
+  战斗系统交接/受击闭环问题复盘（问答集）.md   13 个问题的根因与底层逻辑（带引擎源码行号）
   归档/weapon_equip_fix_and_planA_2026-09-29.md   Play Animation 杀死 AnimBP 的排查记录（已归档）
 Scripts/                          UE Python 远程执行与探测脚本
 Plugins/KBaseUE/                  UE 5.7 引擎语义知识库（自用工具）
@@ -221,6 +223,9 @@ Plugins/KBaseUE/                  UE 5.7 引擎语义知识库（自用工具）
 ## 踩过的坑
 
 这一节是我觉得最值得留下来的部分。
+
+> 完整版：受击 / 血量 / 硬直 / 死亡闭环实现期间卡住的 **13 个问题**（现象 → 根因 → 做法 → 底层逻辑，每条带引擎源码 `file:line` 或资产路径证据）整理在
+> [`Docs/战斗系统交接/受击闭环问题复盘（问答集）.md`](Docs/战斗系统交接/受击闭环问题复盘（问答集）.md)。
 
 ### ① `Play Animation` 会杀死 AnimBP
 
@@ -264,6 +269,30 @@ UE 里接口函数实现成**事件（菱形）还是函数图**，取决于签�
 剩下的文字就被当成命令执行了。中文注释越多错得越离谱。
 
 用 `git ls-files --eol -- "*.cmd"` 可以自查，`w/` 那一列应该是 `crlf`。
+### ⑥ 蒙太奇播完尸体又站起来：`Enable Auto Blend Out`
+
+死亡 Montage 播完自动 blend 回 AnimBP 的待机序列，看起来就是"倒下又站起"。
+原因是 `AnimMontage.bEnableAutoBlendOut` **默认为 true**。关掉它，Montage 播完会停在末帧。
+代价：之后它不会自己停，`On Montage Ended` 不再触发，做 Ragdoll / 复活前要先手动 `Montage Stop`。
+
+### ⑦ 蓝图函数里不能放 `Delay`（latent 只能在事件图）
+
+编译错误原文：`contains a latent call, which cannot exist outside of the event graph`。
+`Delay` 需要"恢复执行点"（`LatentInfo`），只有事件图（Ubergraph）有这个概念，所以和"谁调用你"无关。
+要复用就把逻辑做成自定义事件放事件图；纯同步替代是 `Set Timer by Function Name`。
+
+### ⑧ 组件不能直接绑另一个组件的委托
+
+`AC_NPC` 收不到 `AC_GASCombat` 的 `OnDeath`——两个兄弟组件互相看不见对方的委托。
+必须由同时持有两者的 Actor（`BP_MasterNPC`）绑定事件并转发调用。
+「组件怎么可能引用另一个组件事件」这个问题，答案是：不能。
+
+### ⑨ 方向判断永远取"从背后被打"：位置差恒为 0
+
+`Get Actor Location` 节点是**自调用**（`Target` 针空着 = `self`），返回的是 NPC 自己的位置；
+攻击者位置减自己位置 = `(0,0,0)`，于是「前后」判定永远走背面分支。
+更隐蔽的一次：`IsValid` 接的是**成员变量** `DamageInstigator`（从未被 Set，恒 None），
+而真正该接的是**事件节点**的同名输出针——**名字相同不代表同一个东西**。
 
 ---
 
