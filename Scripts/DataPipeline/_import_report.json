@@ -19,12 +19,12 @@
    "status": "ok",
    "asset": "/Game/Combo_Demo/BP/DataTables/DT_Combat",
    "created": false,
-   "json_rows": 23,
-   "imported_rows": 23,
+   "json_rows": 27,
+   "imported_rows": 27,
    "fill_return": true,
    "saved": true,
    "verify": "ok",
-   "rows": 23,
+   "rows": 27,
    "key_prefix_violations": []
   },
   "DT_Skill": {

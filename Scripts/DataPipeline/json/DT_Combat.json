@@ -21,5 +21,9 @@
   {"Name": "combat.player.hitstun", "Key": "combat.player.hitstun", "Value": 0.38, "Unit": "秒", "Note": "被动技能「心神枷锁」可将其缩短 25%"},
   {"Name": "combat.execute.hp_pct", "Key": "combat.execute.hp_pct", "Value": 20, "Unit": "%", "Note": "与杀生之影 20% 溃逃线重合，鼓励及时处决"},
   {"Name": "combat.enemy.hitstun_large", "Key": "combat.enemy.hitstun_large", "Value": 1.8, "Unit": "秒", "Note": "伤害达到 C-23 阈值时触发，与招架硬直同量级，足够打满一套三连或一次蓄力重击"},
-  {"Name": "combat.enemy.hitstun_large_threshold", "Key": "combat.enemy.hitstun_large_threshold", "Value": 24, "Unit": "点", "Note": "长枪轻击 12/14/20 点均低于阈值只出微硬直；重击 28 点达到阈值出大硬直。改这里等于改轻重击分界"}
+  {"Name": "combat.enemy.hitstun_large_threshold", "Key": "combat.enemy.hitstun_large_threshold", "Value": 24, "Unit": "点", "Note": "长枪轻击 12/14/20 点均低于阈值只出微硬直；重击 28 点达到阈值出大硬直。改这里等于改轻重击分界"},
+  {"Name": "combat.dodge.distance", "Key": "combat.dodge.distance", "Value": 400, "Unit": "厘米", "Note": "闪避位移距离（八方向统一），位移时长复用 combat.dodge.iframe"},
+  {"Name": "combat.dodge.chain_window", "Key": "combat.dodge.chain_window", "Value": 0.5, "Unit": "秒", "Note": "闪避动作中允许接下一次动作的衔接时刻"},
+  {"Name": "combat.parry.front_angle", "Key": "combat.parry.front_angle", "Value": 60, "Unit": "度", "Note": "招架正面判定半角（±，相对攻击者前向）"},
+  {"Name": "combat.parry_counter.window", "Key": "combat.parry_counter.window", "Value": 1.5, "Unit": "秒", "Note": "招架反击资格有效时长"}
 ]

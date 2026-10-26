@@ -1,6 +1,7 @@
-# BP_NPC 受击反馈 / 血量扣除 / 死亡反馈 —— 实现手册（v2 · W6）
+# BP_NPC 受击反馈 / 血量扣除 / 死亡反馈 —— 实现手册（v3 · W6）
 
-> 文档版本：**v3**　最后更新：**2026-10-19**（v3：Step 9–13 全部落地并 PIE 实测通过；Step 13 绑定点与 Delay 写法按实际实现更正）
+> 文档版本：**v3**　最后更新：**2026-10-20**（完成边界与 Step 12 取数勘误；玩法验收仍为用户 2026-10-19 PIE 结果）
+> 完成边界：**Step 7–13 核心行为已验收，Step 14 清理仍待完成；Step 12 独立大硬直时长键尚待对齐**。文件名 `(已完成)` 保留，不代表全部收尾及数据契约已验收。
 > 工程：`Animation_Sample`（UE 5.7.4 + GASCombatBridge v1.1.0）
 > 目标：把 NPC 从「空壳」做到「打得死、会被打」
 > 用法：从上往下按顺序做。每步固定四段——**【操作】怎么做 / 【为什么】** 为什么要这么处理 / **【注释参考】** 可以直接粘到蓝图注释框的话 / **【验收】** 怎么算做完。
@@ -92,7 +93,7 @@
 | M5 | Step 13 死亡流程 | ✅ 已落地 | `AC_NPC.HandleDeath`（18 节点）+ `BP_MasterNPC` 绑 `AC_GASCombat` 的 `死亡时`；`AM_Hit_Death` 取消 AutoBlendOut 定格末帧 |
 | M5 | Step 14 收尾 | ⏳ 只剩清理 | 调试打印（`PrintString` / `DrawDebug`）仍在，见交接文档 P2 |
 
-> 结论（2026-10-19 更新）：**Step 0–13 全部落地，受击→硬直→方向→大小档→死亡整条链已 PIE 实测跑通**（用户验收）。剩 Step 14 的清理项与 P1 功能项（输入缓冲只写不读等），见 [`战斗系统交接文档.md`](战斗系统交接文档.md) §7。
+> 结论（2026-10-20 复核）：**Step 0–13 的核心行为已落地，受击→硬直→方向→大小档→死亡整条链已由用户于 10-19 PIE 实测跑通**。Step 14 清理、Step 12 独立时长键对齐与其他 P1 项仍待处理，见 [`战斗系统交接文档.md`](战斗系统交接文档.md) §7。
 
 ### M1 · 让 NPC 站在那（表现基线，约 1.3h）
 
@@ -121,7 +122,7 @@
 ### M5 · 让 NPC 会死（约 1h）
 
 - [x] **Step 13** 死亡流程｜验收：血归零播死亡、不再挡路、不再响应攻击
-- [ ] **Step 14** 收尾（守卫 + 调试残留 + 全量验收清单）｜验收：无报错、无残留（**当前唯一剩余项**）
+- [ ] **Step 14** 收尾（守卫 + 调试残留 + 全量验收清单）｜验收：无报错、无残留；另有 Step 12 时长键对齐待办，见该节勘误
 
 **合计约 6.5 小时。**
 
@@ -706,6 +707,8 @@ LocalDir = [Inverse Transform Direction]   World Direction = AttackerLocation - 
 
 ## Step 12 · 阈值分档（大 / 小硬直）
 
+> **2026-10-20 静态复核**：下面是目标接法；当前 `AC_NPC.ApplyHitReaction` 缓存的大硬直分支仍取 `parry_stun`，尚未改读已存在的 `hitstun_large`。阈值键已接入，核心行为的既有 PIE 验收保留。具体证据、当前接线与待办以 [交接文档 §4.6 / §7](战斗系统交接文档.md) 为准，由 DSH 指导后续对齐。
+
 ### 【操作】
 在 `ApplyHitReaction` 里，把「算时长」那段改成：
 
@@ -715,14 +718,14 @@ Threshold = GetCombatParam("combat.enemy.hitstun_large_threshold")   // 24
 bLarge = (DamageAmount >= Threshold)  OR  bFromParry
 
 时长   = bFromParry ? GetCombatParam("combat.enemy.parry_stun")   // 1.8
-        : bLarge    ? GetCombatParam("combat.enemy.hitstun_large") // 1.8（没这个键就先用 parry_stun）
+        : bLarge    ? GetCombatParam("combat.enemy.hitstun_large") // 1.8（键已存在，待当前接线对齐）
         :             GetCombatParam("combat.enemy.hitstun")       // 0.35
 ```
 
 ### 【为什么】
 - **阈值放表里**：0.35s 和 1.8s 是手感参数，你会反复调。写在蓝图里每调一次要改图，还容易漏改一处；放表里改完重跑管道就行——这正是你数据管道存在的意义。
 - **为什么是 24**：轻击 12/14/20 全低于它，重击 28 高于它，**现有数值天然分成两段**，不用动平衡。以后加「中击 26」这种招式，改阈值或加档就行。
-- **大硬直时长单独一个键**：现在没有就复用 `parry_stun`（都是 1.8），但**语义上要分开**——招架硬直和重击硬直将来一定会各自调，现在先用一个键，将来拆开只改这一处查表。
+- **大硬直时长单独一个键**：`hitstun_large` 已存在，应与招架的 `parry_stun` 分开读取，方便分别调参。当前同为 1.8，不能用时长相同证明已经取对键。
 
 ### 【注释参考】
 > 大小硬直按伤害值分档，阈值从表里取，方便调手感；轻击 12/14/20 走小硬直，重击 28 走大硬直
@@ -822,7 +825,7 @@ bLarge = (DamageAmount >= Threshold)  OR  bFromParry
 | 轻击三段伤害 | `DT_Combat` / `combat.dmg.light1` `light2` `light3` | **12 / 14 / 20** |
 | 重击伤害 | `DT_Combat` / `combat.dmg.heavy` | **28** |
 | 小硬直时长 | `DT_Combat` / `combat.enemy.hitstun` | **0.35 s** |
-| 大硬直时长 | `DT_Combat` / `combat.enemy.hitstun_large`（新增） | **1.8 s**（`AC_NPC` 已直接取该键，不再借 `parry_stun`） |
+| 大硬直时长 | `DT_Combat` / `combat.enemy.hitstun_large`（目标键） | **1.8 s**；当前缓存仍读 `parry_stun`，待对齐，见交接文档 §4.6 |
 | 招架硬直时长 | `DT_Combat` / `combat.enemy.parry_stun` | **1.8 s** |
 | 杀生之影招架硬直 | `DT_Enemy` / `enemy.shadow.parry_stun` | **1.5 s** |
 | 大硬直阈值 | `DT_Combat` / `combat.enemy.hitstun_large_threshold`（新增 C-23） | **24** |

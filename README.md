@@ -8,7 +8,7 @@
 
 ## ⚠️ 先读这段：clone 下来不能直接打开
 
-本仓库**只包含我自己创作的部分**（约 15 MB），**不含基座素材**。
+本仓库**只包含我自己创作的部分**（体积随学习进度增长），**不含基座素材**。
 
 缺的部分是 Epic 的示例内容（Echo / Paragon 角色、Game Animation Sample 的动画与蓝图、
 MetaHuman 等，约 5.1 GB），它们有各自的授权，不宜由我转发放进公开仓库。
@@ -20,6 +20,8 @@ MetaHuman 等，约 5.1 GB），它们有各自的授权，不宜由我转发放
 3. 把本仓库的 `Content/Combo_Demo/` 整个拖进新工程的 `Content/`
 4. 把 `Content/Levels/DefaultLevel.umap` 也拖进去覆盖同名文件
 
+> 玩家接入还需要按教学手册修改基座的 `SandboxCharacter_CMC` 与 AnimBP，并安装 GASCombatBridge。公开仓库未同步 `Content/Blueprints/`、`Content/Spear/` 和 `Config/`；仅复制上述目录不包含本机的全部接线。
+
 资产内部引用的是包路径（`/Game/Combo_Demo/...`），只要放到相同位置就能被正确解析。
 
 > 反过来说：**这个仓库本身更像一份可以逐文件阅读的代码记录，而不是一个开箱即用的工程。**
@@ -30,10 +32,22 @@ MetaHuman 等，约 5.1 GB），它们有各自的授权，不宜由我转发放
 
 我从 UE 的动画系统开始学，选了一个具体目标：**做一套手感说得过去的近战三连**。
 
-不用 GAS，不用 C++，纯蓝图。理由是先把动画状态机、蒙太奇、动画通知这三件事的
-边界摸清楚，再考虑往上叠框架。
+玩法主要用蓝图实现。最初先学动画状态机、蒙太奇和动画通知；现在通过 GASCombatBridge 插件接入 GAS 的伤害、血量与硬直链路。
 
-到 2026-10-19 的进度：**玩家侧连招闭环 + NPC 受击 / 血量 / 硬直 / 死亡闭环都已跑通**（招架 / 闪避 / 处决还没做）。
+到 **2026-10-26** 的进度：**闪避与防反手册第 0–17 课已完成，防反侧尚未实现。**
+
+| 内容 | 当前进度 |
+|---|---|
+| 轻击三连、蓄力重击、装备 / 卸下 | 已跑通 |
+| NPC 受击 / 血量 / 硬直 / 死亡 | 2026-10-19 用户 PIE 验收通过 |
+| 玩家受击 / 死亡、敌人攻击、防御判定插槽 | 随第 0–17 课完成 |
+| 八方向闪避、位移与无敌窗口 | 第 14–16 课完成 |
+| 连闪上限、恢复计时与衔接窗口 | 第 17 课完成，沿用学习时的 PIE 验收记录 |
+| 闪避退出清理 / 中断 | 第 18 课待做，守卫缺口见附录 G |
+| 招架窗口、正面判定、敌人硬直、招架反击 | 第 19–22 课待做 |
+| 联调与全量回归 | 第 23 课待做 |
+
+学习入口：[教学手册](Docs/规划/角色闪避与招架反击教学手册.md)、[制作规划与验收标准](Docs/规划/角色闪避与招架反击制作规划及验收标准.md)、[文档地图](Docs/README.md)。下面的旧实现讲解保留原取证日期，当前进度以这里和手册为准。本次发布做了数值与文件一致性检查，未重跑 PIE 和附录 G.5 的五项回归。
 
 ---
 
@@ -41,7 +55,7 @@ MetaHuman 等，约 5.1 GB），它们有各自的授权，不宜由我转发放
 
 ### 1. 战斗组件 `AC_Combat`
 
-一个 ActorComponent（`Content/Combo_Demo/BP/Components/AC_Combat.uasset`，约 640 个节点），
+一个 ActorComponent（`Content/Combo_Demo/BP/Components/AC_Combat.uasset`），
 挂在 `SandboxCharacter_CMC` 上，**组件标签为 `Combat`**。
 
 > ⚠️ 那个标签是承重的：三个动画通知都靠 `GetComponentsByTag("Combat")` 找到组件。
@@ -193,6 +207,9 @@ Content/
     BP/
       Components/AC_Combat        战斗组件本体（玩家）
       Components/AC_NPC           NPC 受击 / 硬直 / 死亡逻辑
+      Components/AC_EnemyAttack   敌人攻击
+      Library/BPFL_Defense        防御判定分发
+      Enums/E_DefenseResult       防御判定结果
       Components/AC_GASCombat     GAS 桥接组件（血量 / 伤害广播，插件提供）
       Actors/BP_MasterWeapon      武器 Actor（实现 BPI_WeaponActor）
       Actors/BP_MasterNPC         敌人（挂 AC_GASCombat + AC_NPC）
@@ -207,6 +224,11 @@ Content/
     DefaultLevel.umap             主关卡（战斗验证场）
     NPCLevel.umap                 预留的 NPC 关卡
 Docs/
+  README.md                      文档地图
+  规划/                          闪避与招架反击教学手册、制作规划与验收标准
+  协作/                          项目导览、数值同步与修复回执
+  审查/                          文档勘误与历史审查
+  阶段一可执行计划/               阶段排期与执行计划
   战斗系统交接/战斗系统交接文档.md   完整交接文档（含待办清单与验证步骤）
   战斗系统交接/BP_NPC受击与血量死亡实现手册(已完成).md   受击 / 硬直 / 死亡实施手册（Step 0–14）
   战斗系统交接/受击闭环问题复盘（问答集）.md   13 个问题的根因与底层逻辑（带引擎源码行号）
@@ -215,7 +237,7 @@ Scripts/                          UE Python 远程执行与探测脚本
 Plugins/KBaseUE/                  UE 5.7 引擎语义知识库（自用工具）
 ```
 
-> 这里**没有用 Git LFS**。仓库只有 15 MB，不用 LFS 能让 clone 的人省掉装 git-lfs 的步骤。
+> 这里**没有用 Git LFS**。公开内容按普通 Git 二进制文件保存，clone 时无需安装 git-lfs。
 > 如果以后资产长得很大，再迁移也来得及。
 
 ---
@@ -305,7 +327,7 @@ UE 里接口函数实现成**事件（菱形）还是函数图**，取决于签�
 | ✅ 已作废 | ~~`AttackMontages` 顺序错位~~ → 2026-10-16 已重构为「轻击 3 段 + 重击 2 段」两套数组（`LightAttackMontages` / `HeavyAttackMontages`），旧的单数组结论不再适用 |
 | 🟡 P2 | 4 个遗留 `AS_Combo*` 蒙太奇未清理（`AS_Combo02_01` / `02_03` / `02_04` / `03_04`），已不再被引用 |
 | 🟠 P1 | **`CurrentBufferedInput` 只写不读**——输入缓冲实际未生效，被写入后没有任何地方消费它 |
-| ✅ 已完成 | ~~NPC 侧完全空白~~ → **2026-10-19 已打通受击 / 血量 / 硬直 / 死亡**；剩下招架 / 闪避 / 处决（W6 后半） |
+| ✅ 已完成 | ~~NPC 侧完全空白~~ → **2026-10-19 已打通受击 / 血量 / 硬直 / 死亡**；第 0–17 课已推进到闪避连闪与恢复；防反侧尚未实现，退出清理和守卫回归见手册第 18 课及附录 G |
 | 🟡 P2 | `LastTraceLocation` 是死变量（只读不写） |
 | 🟡 P2 | `AM_Equip_Spear` / `AM_Unequip_Spear` 全工程零引用 |
 | 🔵 P3 | 连招窗口固定 2.0s，而最长的蒙太奇是 2.92s——数值待实机调 |

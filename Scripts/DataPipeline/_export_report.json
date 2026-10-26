@@ -1,6 +1,6 @@
 {
     "xlsx":  "C:\\Users\\123\\Desktop\\游戏架构设计\\数值配置表-界域律令\\数值配置表-界域律令.xlsx",
-    "exported_at":  "2026-10-18T20:57:33",
+    "exported_at":  "2026-10-20T19:27:01",
     "tables":  {
                    "DT_Karma":  {
                                     "sheet":  "01 承负系统",
@@ -31,7 +31,7 @@
                                                      "id":  "A",
                                                      "name":  "C"
                                                  },
-                                     "rows":  23,
+                                     "rows":  27,
                                      "skipped":  [
 
                                                  ],

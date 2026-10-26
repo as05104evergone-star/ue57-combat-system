@@ -5,13 +5,14 @@
 校验链路：
   源表 xlsx（桌面）--export_datatables.ps1--> csv/ + json/ + _rowmap.csv
       --import_datatables.py--> Content/.../DT_*.uasset（行数据内联字节）
-      --消费侧--> BPFL_GameParams / AC_Combat / BP_MasterNPC（T3D 缓存文本）
+      --消费侧--> BPFL_GameParams / AC_Combat / AC_NPC / BP_MasterNPC（T3D 缓存文本）
 
 用法（本机 python 桩不可用，用 UE 自带解释器，纯 stdlib）：
   E:\\UE_5.7\\Engine\\Binaries\\ThirdParty\\Python3\\Win64\\python.exe Scripts\\DataPipeline\\verify_mapping.py
   可选参数：--json  只输出机器可读结果；--quiet 只输出汇总
 
 退出码：0=无 FAIL；1=有 FAIL。
+消费侧仅检查指定 T3D 缓存中的键字面量，不证明执行流可达、默认值或 PIE 验收通过。
 只读：本脚本不写任何文件，不写 Content，不执行 import/sync。
 """
 import csv
@@ -31,6 +32,12 @@ JSON_DIR = os.path.join(DP, "json")
 T3D_DIR = os.path.join(PROJ, "Plugins", "ComboMCP", "cache", "t3d")
 DT_DIR = os.path.join(PROJ, "Content", "Combo_Demo", "BP", "DataTables")
 STRUCT_T3D = os.path.join(T3D_DIR, "_Game_Combo_Demo_BP_Structures_S_GameParam.t3d")
+CONSUMER_T3D = (
+    "_Game_Combo_Demo_BP_Components_AC_Combat.t3d",
+    "_Game_Combo_Demo_BP_Components_AC_NPC.t3d",
+    "_Game_Combo_Demo_BP_Actors_BP_MasterNPC.t3d",
+)
+LIBRARY_T3D = "_Game_Combo_Demo_BP_Library_BPFL_GameParams.t3d"
 
 # export_datatables.ps1 的 SheetMap：xlsx 子表编号 -> DataTable 名
 SHEET_MAP = [
@@ -352,10 +359,10 @@ def check_consumer_keys():
             known[row["Key"]] = dt
     out = {"literals": {}, "dangling": [], "dynamic": [], "tables_read": {},
            "unused_dt": {}}
-    for bp in ["_Game_Combo_Demo_BP_Components_AC_Combat.t3d",
-               "_Game_Combo_Demo_BP_Actors_BP_MasterNPC.t3d"]:
+    for bp in CONSUMER_T3D:
         p = os.path.join(T3D_DIR, bp)
         if not os.path.isfile(p):
+            fail("consumer/T3D", "消费侧 T3D 缓存缺失，无法完成键检查：%s" % p)
             continue
         txt = read_text(p)
         lits = set()
@@ -384,9 +391,7 @@ def check_consumer_keys():
             else:
                 out["dangling"].append({"bp": bp, "key": s})
     # 直接 GetDataTableRow 读的表（非本管线 9 张也算，注明）
-    for bp in ["_Game_Combo_Demo_BP_Components_AC_Combat.t3d",
-               "_Game_Combo_Demo_BP_Actors_BP_MasterNPC.t3d",
-               "_Game_Combo_Demo_BP_Library_BPFL_GameParams.t3d"]:
+    for bp in CONSUMER_T3D + (LIBRARY_T3D,):
         p = os.path.join(T3D_DIR, bp)
         if not os.path.isfile(p):
             continue
@@ -641,7 +646,7 @@ def main():
                                ("combat.enemy.hitstun_large", "combat.enemy.hitstun_large_threshold")}
     for k, used in res["newkeys_consumed"].items():
         if not used:
-            warn("0-D/未接线", "%r 已在表里，但 AC_Combat/BP_MasterNPC 中无该键字面量（仍是写死值）" % k)
+            warn("0-D/未发现消费证据", "%r 已在表里，但 AC_Combat/AC_NPC/BP_MasterNPC 的已读取 T3D 缓存中无该键字面量；需核对缓存时效与实际取数链，不能据此认定未接线或写死值" % k)
 
     # ---- 6. §9 探针（xlsx 原始单元格 + 目录/文档/缓存事实）
     probes = {}

@@ -22,3 +22,7 @@ Name,Key,Value,Unit,Note
 "combat.execute.hp_pct","combat.execute.hp_pct","20","%","与杀生之影 20% 溃逃线重合，鼓励及时处决"
 "combat.enemy.hitstun_large","combat.enemy.hitstun_large","1.8","秒","伤害达到 C-23 阈值时触发，与招架硬直同量级，足够打满一套三连或一次蓄力重击"
 "combat.enemy.hitstun_large_threshold","combat.enemy.hitstun_large_threshold","24","点","长枪轻击 12/14/20 点均低于阈值只出微硬直；重击 28 点达到阈值出大硬直。改这里等于改轻重击分界"
+"combat.dodge.distance","combat.dodge.distance","400","厘米","闪避位移距离（八方向统一），位移时长复用 combat.dodge.iframe"
+"combat.dodge.chain_window","combat.dodge.chain_window","0.5","秒","闪避动作中允许接下一次动作的衔接时刻"
+"combat.parry.front_angle","combat.parry.front_angle","60","度","招架正面判定半角（±，相对攻击者前向）"
+"combat.parry_counter.window","combat.parry_counter.window","1.5","秒","招架反击资格有效时长"
